@@ -1,0 +1,3 @@
+"""
+FitAI Routes Package
+"""

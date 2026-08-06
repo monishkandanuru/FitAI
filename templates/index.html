@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}FitAI – AI Powered Fitness & Nutrition Coach{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section" id="hero-section">
+    <div class="container hero-container">
+        <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            <span>Production-Ready Flask Foundation</span>
+        </div>
+        
+        <h1 class="hero-title" id="main-title">
+            <span class="title-highlight">FitAI</span>
+        </h1>
+        
+        <p class="hero-subtitle" id="main-subtitle">
+            AI Powered Fitness & Nutrition Coach
+        </p>
+        
+        <p class="hero-description">
+            Experience next-generation intelligent coaching. Transform your physical performance with custom AI-generated workouts, real-time macro optimization, and predictive athletic feedback.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#features" class="btn btn-primary" id="btn-explore-features">
+                <span>Explore AI Features</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <button class="btn btn-secondary" id="btn-check-api">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <span>Test Health Endpoint</span>
+            </button>
+        </div>
+
+        <!-- Metric Counter Highlights -->
+        <div class="hero-stats-grid mt-5">
+            <div class="stat-card glass-card">
+                <span class="stat-value" id="stat-latency">0.5ms</span>
+                <span class="stat-label">Server Response</span>
+            </div>
+            <div class="stat-card glass-card">
+                <span class="stat-value">100%</span>
+                <span class="stat-label">Python 3.13 Ready</span>
+            </div>
+            <div class="stat-card glass-card">
+                <span class="stat-value">SQLite</span>
+                <span class="stat-label">Database Prepared</span>
+            </div>
+            <div class="stat-card glass-card">
+                <span class="stat-value">Modular</span>
+                <span class="stat-label">Blueprint Architecture</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Grid Section -->
+<section class="section-features py-6" id="features">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Designed for Next-Gen Fitness AI</h2>
+            <p class="section-subtitle">Scalable foundation engineered for high-performance workout generation and nutrition intelligence.</p>
+        </div>
+
+        <div class="features-grid mt-4">
+            <!-- Feature 1 -->
+            <div class="feature-card glass-card">
+                <div class="feature-icon icon-emerald">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6"/></svg>
+                </div>
+                <h3>AI Workout Generator</h3>
+                <p>Architected to stream tailored multi-day training routines based on muscle group recovery and user goals.</p>
+                <div class="feature-tag">Modular Route Ready</div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-card glass-card">
+                <div class="feature-icon icon-cyan">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <h3>Smart Macro Coach</h3>
+                <p>Calculate caloric expenditure, macro splits, and micronutrient targets with dynamic metabolic formulas.</p>
+                <div class="feature-tag">Utility Integration Ready</div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card glass-card">
+                <div class="feature-icon icon-purple">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                </div>
+                <h3>Progress Analytics</h3>
+                <p>Track body composition, progressive overload curves, and historical volume with SQLite data persistence.</p>
+                <div class="feature-tag">SQLite Database Prepared</div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="feature-card glass-card">
+                <div class="feature-icon icon-amber">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>24/7 AI Coach Assistant</h3>
+                <p>Conversational assistant foundation for form corrections, meal substitutions, and recovery advice.</p>
+                <div class="feature-tag">Extensible API Schema</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Status & API Test Modal / Section -->
+<section class="section-status py-6" id="system-status">
+    <div class="container">
+        <div class="glass-card status-card">
+            <div class="status-header">
+                <div>
+                    <h3 class="card-title">Backend Architecture Audit</h3>
+                    <p class="card-desc">Verify current server configuration and JSON endpoint health status.</p>
+                </div>
+                <button class="btn btn-sm btn-primary" id="btn-fetch-health">Fetch /health JSON</button>
+            </div>
+
+            <div class="tech-stack-row mt-3">
+                <div class="tech-item">
+                    <span class="tech-key">Framework</span>
+                    <span class="tech-val">Flask (Python 3.13+)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-key">Database</span>
+                    <span class="tech-val">SQLite 3</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-key">Pattern</span>
+                    <span class="tech-val">Application Factory (`create_app`)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-key">Frontend</span>
+                    <span class="tech-val">HTML5 + CSS3 + Vanilla JS</span>
+                </div>
+            </div>
+
+            <div class="json-preview-container mt-4" id="json-container" style="display: none;">
+                <div class="json-header">
+                    <span class="json-title">HTTP 200 OK — GET /health</span>
+                    <span class="json-copy-btn" id="json-copy-btn">Copy JSON</span>
+                </div>
+                <pre class="json-code" id="json-output"></pre>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

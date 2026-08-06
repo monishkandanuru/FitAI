@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile – FitAI Coach{% endblock %}
+
+{% block content %}
+<section class="profile-section py-6">
+    <div class="container profile-container">
+        <div class="profile-card glass-card">
+            <div class="profile-header">
+                <div class="user-avatar-xl">
+                    <span>{{ user.full_name[:2].upper() if user.full_name else 'AI' }}</span>
+                </div>
+                <div class="profile-title-group">
+                    <h1>{{ user.full_name }}</h1>
+                    <p class="profile-email">{{ user.email }}</p>
+                    <span class="user-role-badge">FitAI User Account</span>
+                </div>
+            </div>
+
+            <div class="profile-details-grid mt-4">
+                <div class="detail-item">
+                    <span class="detail-label">Account ID</span>
+                    <span class="detail-value">#{{ user.id }}</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Full Name</span>
+                    <span class="detail-value">{{ user.full_name }}</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Email Address</span>
+                    <span class="detail-value">{{ user.email }}</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Member Since</span>
+                    <span class="detail-value">{{ user.created_at.strftime('%Y-%m-%d %H:%M UTC') if user.created_at else 'N/A' }}</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Security Hashing</span>
+                    <span class="detail-value text-emerald">Werkzeug PBKDF2:SHA256</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Database Storage</span>
+                    <span class="detail-value">SQLite (fitai.db)</span>
+                </div>
+            </div>
+
+            <div class="profile-actions mt-4">
+                <a href="{{ url_for('auth.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
