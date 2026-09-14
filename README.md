@@ -1,151 +1,78 @@
-# FitAI – AI Powered Fitness & Nutrition Coach
+# FitAI
 
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Framework](https://img.shields.io/badge/framework-Flask_3.0+-emerald.svg)](https://flask.palletsprojects.com/)
-[![Database](https://img.shields.io/badge/database-SQLite-cyan.svg)](https://www.sqlite.org/)
-[![License](https://img.shields.io/badge/license-MIT-purple.svg)](#)
+A Python/Flask fitness journal with account authentication, an adult BMI calculator,
+measurement history, workout and meal logging, and a dashboard backed by saved data.
 
-FitAI is a scalable, production-ready web application foundation for an AI-powered fitness and nutrition coaching platform. Built using Python 3.13, Flask application factory architecture, SQLite database readiness, and a dark glassmorphic responsive UI.
+All server logic, calculations, database access, and deployment build steps run in
+Python. The browser uses HTML/CSS and a small amount of JavaScript for interactions.
+No Node.js build is required. AI coaching and automatic meal recognition are not
+implemented; journal entries are user supplied.
 
----
+## Run locally
 
-## 🌟 Key Highlights & Features
+Python 3.12 or 3.13:
 
-- **Modular Blueprint Architecture**: Uses Flask's Application Factory pattern (`create_app()`) to keep AI routing, database models, and utilities isolated.
-- **Configurable Environments**: Pre-configured settings for `Development`, `Production`, and `Testing` with SQLite database integration.
-- **Modern UI/UX**: Built with semantic HTML5, glassmorphism dark mode CSS3, and vanilla JavaScript (no heavyweight frontend framework overhead).
-- **Live Health Monitoring**: Built-in `/health` API endpoint to monitor backend uptime, database connectivity status, and server latency.
-- **Extensible Folder Structure**: Dedicated spaces for models, routes, utility helpers, generated PDF reports, and media uploads.
-
----
-
-## 📁 Directory Structure
-
-```text
-FitAI/
-│
-├── app.py                # Main Flask application entrypoint & factory (create_app)
-├── config.py             # Configuration classes (Development, Production, Testing)
-├── requirements.txt      # Python dependencies list
-├── README.md             # Project documentation & execution guide
-│
-├── templates/            # HTML5 Jinja2 Templates
-│   ├── base.html         # Base template with glassmorphism layout & header/footer
-│   └── index.html        # FitAI homepage with feature showcase & system audit
-│
-├── static/               # Static Frontend Assets
-│   ├── css/
-│   │   └── style.css     # CSS custom properties, grid system & animations
-│   ├── js/
-│   │   └── script.js     # Vanilla JS for health check polling & UI interactions
-│   └── images/           # Static media assets directory
-│
-├── routes/               # Modular Flask Blueprints
-│   ├── __init__.py
-│   └── main.py           # Core routes ('/' homepage and '/health' endpoint)
-│
-├── models/               # SQLAlchemy Database Models (User, Workout, Nutrition)
-│   └── __init__.py
-│
-├── utils/                # AI logic helpers, math calculators & image processing
-│   └── __init__.py
-│
-├── reports/              # Storage directory for generated PDF/HTML reports
-│   └── .gitkeep
-│
-└── uploads/              # Storage directory for user file/image uploads
-    └── .gitkeep
-```
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-
-- **Python 3.13** or higher installed on your system.
-- `pip` (Python package manager).
-
-### 1. Clone or Open Project
-
-Navigate to the project root directory:
-
-```bash
-cd FitAI
-```
-
-### 2. Create and Activate Virtual Environment
-
-**On macOS / Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-**On Windows:**
-```cmd
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the Application
-
-Start the Flask development server:
-
-```bash
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
 python app.py
 ```
 
-Or using Flask CLI:
+Visit http://localhost:5000. SQLite tables are created automatically for development.
+Set a stable `SECRET_KEY` in `.env` to retain sessions across server restarts. Without
+one, development generates a random key at startup. Debug mode is disabled by default.
 
-```bash
-export FLASK_APP=app.py
-export FLASK_ENV=development
-flask run --port=5000
+## Test
+
+```sh
+python -m pytest -q
+python -m pip check
+python build.py
 ```
 
-Open your browser and navigate to:
-👉 **[http://localhost:5000](http://localhost:5000)**
+GitHub Actions runs tests on Python 3.12 and 3.13, plus a PostgreSQL integration test.
+Tests use isolated databases and do not change real accounts.
 
----
+## Deploy to Vercel
 
-## ⚙️ Configuration Settings
+1. Import the existing GitHub repository `monishkandanuru/FitAI` into Vercel, or use
+   its existing project if already connected. Select Flask and repository root.
+2. Connect a persistent PostgreSQL database. Set `DATABASE_URL` to the provider's
+   connection URL (with its required TLS settings). `postgres://` and `postgresql://`
+   are normalized to the psycopg driver automatically.
+3. Set `FLASK_ENV=production` and a cryptographically random `SECRET_KEY` of at least
+   32 characters. Generate it locally with `python -c 'import secrets; print(secrets.token_hex(32))'`.
+   Store secrets in Vercel environment settings, never in GitHub source.
+4. Initialize the database once from a trusted terminal with the same production
+   environment variables: `python -m flask --app app init-db`. This creates missing
+   tables without deleting existing rows. Back up existing data before future schema
+   changes; this command is not a migration system.
+5. Deploy. `pyproject.toml` selects Python and `app:app`; `build.py` copies assets to
+   `public/static` for Vercel's CDN. Check `/health` for HTTP 200 and
+   `{"status":"healthy", "database":"connected", ...}`.
+6. On the deployed HTTPS URL, check registration, login, BMI calculation and save,
+   journals, history, settings, and sign-out.
 
-Environment variables can be customized in `config.py` or provided via `.env`:
+Do not use SQLite or `/tmp` as a production database on Vercel: data would not be
+reliably shared or persisted across function instances. Production startup fails
+with a clear configuration error if required secrets/storage are missing. Production
+does not create tables at import time.
 
-| Variable | Default | Purpose |
-| :--- | :--- | :--- |
-| `FLASK_ENV` | `development` | Selects config class (`development`, `production`, `testing`) |
-| `DATABASE_URL` | `sqlite:///fitai.db` | SQLite database URI |
-| `SECRET_KEY` | `fitai-secret-key-...` | Flask session secret key |
-| `PORT` | `5000` | Port for Flask web server |
+Vercel reference: https://vercel.com/docs/frameworks/backend/flask
 
----
+## Behavior and limits
 
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Renders the FitAI web homepage |
-| `GET` | `/health` | Returns JSON status payload with server health & timestamp |
-
----
-
-## 🔮 Roadmap & Planned AI Features
-
-1. **🏋️ Workout Generation Blueprint**: LLM-driven exercise routine builder targeting specific muscle hypertrophy/endurance goals.
-2. **🥗 Vision Meal Tracker**: Computer vision & multimodal AI endpoint to analyze meal photographs and calculate protein/carbs/fats.
-3. **📊 Athletic Analytics Engine**: Historical progression tracking stored in SQLite with dynamic chart visualizations.
-4. **🤖 Conversational Coach**: Interactive WebSocket/SSE assistant for real-time recovery advice.
-
----
-
-## 📝 License
-
-Distributed under the MIT License.
+- Every state-changing request requires CSRF protection; sign-out uses POST.
+- Session cookies are HttpOnly, SameSite=Lax, and Secure in production.
+- BMI is recomputed on the server from validated measurements, never trusted from
+  browser-supplied BMI/category values. This calculator is restricted to adults 20+.
+- BMI is a screening measure, not a diagnosis. It does not assess body composition,
+  pregnancy, or individual health needs.
+- Dashboard daily totals use UTC. Journals/history show up to 100 recent records.
+- `/health` actually queries the database and required tables and returns 503 on failure.
+- Email verification, password reset email, AI-generated plans, and automated food
+  analysis are not available. Configure platform-level rate limiting before opening
+  registration to a large audience.
+- No production deployment is claimed by the source alone. Vercel access, database
+  credentials, deployment success, and live workflows must be verified separately.

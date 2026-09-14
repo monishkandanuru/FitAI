@@ -11,3 +11,5 @@ from models.user import User
 from models.bmi_record import BmiRecord
 
 __all__ = ['db', 'User', 'BmiRecord']
+
+from models.activity import Activity

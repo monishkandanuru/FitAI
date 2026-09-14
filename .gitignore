@@ -31,3 +31,14 @@ uploads/*
 # Keep empty folders
 !reports/.gitkeep
 !static/images/.gitkeep
+
+.venv/
+.env
+.env.*
+!.env.example
+.vercel/
+public/
+.pytest_cache/
+*.pyc
+__pycache__/
+*.db

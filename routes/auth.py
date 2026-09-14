@@ -4,12 +4,14 @@ Handles user registration, authentication sessions, password security, dashboard
 """
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, session, g
+    Blueprint, render_template, request, redirect, url_for, flash, session, g, jsonify
 )
-from models import db, User
+from models import db, User, BmiRecord, Activity
+from utils.bmi import calculate
+from urllib.parse import urlsplit
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -20,9 +22,9 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash("Please log in to access this page.", "warning")
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.path))
         
-        user = User.query.get(session['user_id'])
+        user = db.session.get(User, session['user_id'])
         if not user:
             session.pop('user_id', None)
             flash("Session expired or user not found. Please log in again.", "warning")
@@ -51,7 +53,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = User.query.get(user_id)
+        g.user = db.session.get(User, user_id)
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -68,17 +70,17 @@ def register():
 
         # Server-side validations
         errors = []
-        if not full_name:
-            errors.append("Full Name is required.")
+        if not full_name or len(full_name) > 100:
+            errors.append("Full Name is required and must be at most 100 characters.")
         if not email:
             errors.append("Email address is required.")
-        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        elif len(email) > 120 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
             errors.append("Please provide a valid email address.")
             
         if not password:
             errors.append("Password is required.")
-        elif len(password) < 8:
-            errors.append("Password must be at least 8 characters long.")
+        elif not 8 <= len(password) <= 128:
+            errors.append("Password must contain 8–128 characters.")
             
         if password != confirm_password:
             errors.append("Password and Confirm Password do not match.")
@@ -107,6 +109,7 @@ def register():
             db.session.commit()
             
             # Automatically log in user after registration
+            session.clear()
             session['user_id'] = new_user.id
             flash(f"Welcome to FitAI, {new_user.full_name}! Your account was created successfully.", "success")
             return redirect(url_for('auth.dashboard'))
@@ -144,7 +147,7 @@ def login():
 
             flash(f"Welcome back, {user.full_name}!", "success")
             next_page = request.args.get('next')
-            if next_page and next_page.startswith('/'):
+            if next_page and next_page.startswith('/') and not next_page.startswith('//') and not urlsplit(next_page).netloc and '\\' not in next_page and not any(ord(c) < 32 for c in next_page):
                 return redirect(next_page)
             return redirect(url_for('auth.dashboard'))
         else:
@@ -154,7 +157,7 @@ def login():
     return render_template('auth/login.html')
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     """Clear session data and log out current user."""
     session.clear()
@@ -169,25 +172,14 @@ def dashboard():
     greeting = get_time_greeting()
     today_date = datetime.now().strftime('%A, %B %d, %Y')
     
-    # Realistic sample metrics dictionary
-    stats = {
-        'bmi': 22.6,
-        'bmi_category': 'Normal Weight',
-        'weight': '68 kg',
-        'calories_target': '2,300 kcal',
-        'calories_consumed': '1,450 kcal',
-        'water_current': '2.5 L',
-        'water_target': '3.0 L',
-        'water_percentage': 83
-    }
-    
-    return render_template(
-        'dashboard.html',
-        user=g.user,
-        greeting=greeting,
-        today_date=today_date,
-        stats=stats
-    )
+    latest = BmiRecord.query.filter_by(user_id=g.user.id).order_by(BmiRecord.recorded_at.desc(), BmiRecord.id.desc()).first()
+    today = datetime.now(timezone.utc).date()
+    activities = Activity.query.filter_by(user_id=g.user.id, day=today).all()
+    return render_template('dashboard.html', user=g.user, greeting=greeting,
+        today_date=today_date, latest=latest,
+        minutes=sum(a.amount for a in activities if a.kind == 'workout'),
+        calories=sum(a.amount for a in activities if a.kind == 'diet'),
+        records=BmiRecord.query.filter_by(user_id=g.user.id).count())
 
 
 @auth_bp.route('/profile')
@@ -197,177 +189,95 @@ def profile():
     return render_template('profile.html', user=g.user)
 
 
-# Placeholder Module Endpoints
 @auth_bp.route('/bmi', methods=['GET', 'POST'])
 @login_required
 def bmi():
-    """
-    BMI Calculator — GET renders the form, POST computes BMI and saves the result.
-    The bmi_records table is created automatically by db.create_all() in app.py.
-    """
-    from models import BmiRecord
-
-    result = None   # Holds computed BMI data after a POST
-
+    result = None
     if request.method == 'POST':
-        # ── Collect & validate form inputs ──────────────────────────────────
-        errors = []
-
         try:
-            height_cm = float(request.form.get('height_cm', 0))
-        except (ValueError, TypeError):
-            height_cm = 0
-        try:
-            weight_kg = float(request.form.get('weight_kg', 0))
-        except (ValueError, TypeError):
-            weight_kg = 0
-        try:
-            age = int(request.form.get('age', 0))
-        except (ValueError, TypeError):
-            age = 0
-
-        gender = request.form.get('gender', '').strip().lower()
-
-        if height_cm <= 0 or height_cm > 300:
-            errors.append("Height must be between 1 and 300 cm.")
-        if weight_kg <= 0 or weight_kg > 600:
-            errors.append("Weight must be between 1 and 600 kg.")
-        if age <= 0 or age > 120:
-            errors.append("Age must be between 1 and 120.")
-        if gender not in ('male', 'female'):
-            errors.append("Please select a valid gender.")
-
-        if errors:
-            for error in errors:
-                flash(error, "danger")
-            return render_template('bmi.html',
-                                   height_cm=height_cm, weight_kg=weight_kg,
-                                   age=age, gender=gender, result=None)
-
-        # ── Compute BMI ──────────────────────────────────────────────────────
-        height_m = height_cm / 100.0
-        bmi_value = round(weight_kg / (height_m ** 2), 1)
-
-        if bmi_value < 18.5:
-            bmi_category = "Underweight"
-            category_class = "bmi-underweight"
-        elif bmi_value < 25:
-            bmi_category = "Normal Weight"
-            category_class = "bmi-normal"
-        elif bmi_value < 30:
-            bmi_category = "Overweight"
-            category_class = "bmi-overweight"
-        else:
-            bmi_category = "Obese"
-            category_class = "bmi-obese"
-
-        result = {
-            'bmi_value':     bmi_value,
-            'bmi_category':  bmi_category,
-            'category_class': category_class,
-            'height_cm':     height_cm,
-            'weight_kg':     weight_kg,
-            'age':           age,
-            'gender':        gender.capitalize(),
-        }
-
-        return render_template('bmi.html',
-                               height_cm=height_cm, weight_kg=weight_kg,
-                               age=age, gender=gender, result=result)
-
-    # ── GET — render blank calculator ────────────────────────────────────────
-    return render_template('bmi.html',
-                           height_cm='', weight_kg='', age='', gender='', result=None)
-
+            result = calculate(request.form)
+        except ValueError as exc:
+            flash(str(exc), 'danger')
+    values = {k: request.form.get(k, '') for k in ('height_cm', 'weight_kg', 'age', 'gender')}
+    return render_template('bmi.html', result=result, **values)
 
 @auth_bp.route('/bmi/save', methods=['POST'])
 @login_required
 def bmi_save():
-    """
-    Save a previously calculated BMI result into the bmi_records SQLite table.
-    Expects JSON body: { height_cm, weight_kg, age, gender, bmi_value, bmi_category }
-    """
-    from models import BmiRecord
-    from flask import request as req
-
-    data = req.get_json(silent=True) or {}
-
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(success=False, error='Expected a JSON object.'), 400
     try:
-        height_cm    = float(data.get('height_cm', 0))
-        weight_kg    = float(data.get('weight_kg', 0))
-        age          = int(data.get('age', 0))
-        gender       = str(data.get('gender', '')).lower()
-        bmi_value    = float(data.get('bmi_value', 0))
-        bmi_category = str(data.get('bmi_category', ''))
-    except (ValueError, TypeError):
-        return jsonify({'success': False, 'error': 'Invalid payload.'}), 400
-
-    if not (height_cm and weight_kg and age and gender and bmi_value and bmi_category):
-        return jsonify({'success': False, 'error': 'Incomplete data.'}), 400
-
-    record = BmiRecord(
-        user_id      = g.user.id,
-        height_cm    = height_cm,
-        weight_kg    = weight_kg,
-        age          = age,
-        gender       = gender,
-        bmi_value    = bmi_value,
-        bmi_category = bmi_category,
-    )
-
+        result = calculate(data)
+    except ValueError as exc:
+        return jsonify(success=False, error=str(exc)), 400
+    result.pop('category_class')
+    record = BmiRecord(user_id=g.user.id, **result)
     try:
         db.session.add(record)
         db.session.commit()
-        return jsonify({'success': True, 'record_id': record.id,
-                        'message': 'BMI result saved successfully!'})
-    except Exception as exc:
+    except Exception:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(exc)}), 500
+        return jsonify(success=False, error='Unable to save right now. Please try again.'), 503
+    return jsonify(success=True, record_id=record.id, message='BMI result saved successfully!')
 
 
-@auth_bp.route('/workout')
+def activity_page(kind):
+    title = 'Workout Journal' if kind == 'workout' else 'Meal Journal'
+    unit = 'minutes' if kind == 'workout' else 'kcal'
+    if request.method == 'POST':
+        label = request.form.get('label', '').strip()
+        try:
+            amount = int(request.form.get('amount', ''))
+            day = datetime.strptime(request.form.get('day', ''), '%Y-%m-%d').date()
+            if not label or len(label) > 160 or not 1 <= amount <= (1440 if kind == 'workout' else 10000):
+                raise ValueError
+            if day > datetime.now(timezone.utc).date():
+                raise ValueError
+        except (ValueError, TypeError):
+            flash('Enter a description, a valid amount, and a date no later than today.', 'danger')
+        else:
+            db.session.add(Activity(user_id=g.user.id, kind=kind, label=label, amount=amount, day=day))
+            db.session.commit()
+            flash('Entry saved.', 'success')
+            return redirect(url_for('auth.' + kind))
+    entries = Activity.query.filter_by(user_id=g.user.id, kind=kind).order_by(Activity.day.desc(), Activity.id.desc()).limit(100).all()
+    return render_template('journal.html', title=title, unit=unit, entries=entries,
+                           today=datetime.now(timezone.utc).date().isoformat(), kind=kind)
+
+@auth_bp.route('/workout', methods=['GET', 'POST'])
 @login_required
 def workout():
-    return render_template(
-        'placeholder.html',
-        module_name="Workout Planner",
-        icon="🏋️‍♂️",
-        tag="AI Routine Architect",
-        description="Generate hyper-personalized training routines optimized for progressive overload and muscle hypertrophy."
-    )
+    return activity_page('workout')
 
-
-@auth_bp.route('/diet')
+@auth_bp.route('/diet', methods=['GET', 'POST'])
 @login_required
 def diet():
-    return render_template(
-        'placeholder.html',
-        module_name="Diet & Nutrition Planner",
-        icon="🥗",
-        tag="Smart Macro Coach",
-        description="Calculate metabolic caloric targets, macro splits, and customized meal recommendations."
-    )
-
+    return activity_page('diet')
 
 @auth_bp.route('/progress')
 @login_required
 def progress():
-    return render_template(
-        'placeholder.html',
-        module_name="Progress Analytics",
-        icon="📊",
-        tag="Performance Intelligence",
-        description="Visualize long-term strength gains, body composition changes, and workout compliance metrics."
-    )
+    records = BmiRecord.query.filter_by(user_id=g.user.id).order_by(BmiRecord.recorded_at.desc(), BmiRecord.id.desc()).limit(100).all()
+    return render_template('progress.html', records=records)
 
-
-@auth_bp.route('/settings')
+@auth_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    return render_template(
-        'placeholder.html',
-        module_name="Account Settings",
-        icon="⚙️",
-        tag="Preferences & Security",
-        description="Manage your account profile, notification preferences, security options, and API keys."
-    )
+    if request.method == 'POST':
+        name = request.form.get('full_name', '').strip()
+        password = request.form.get('new_password', '')
+        if not g.user.check_password(request.form.get('current_password', '')):
+            flash('Current password is incorrect.', 'danger')
+        elif not name or len(name) > 100:
+            flash('Enter a name of 1–100 characters.', 'danger')
+        elif password and (not 8 <= len(password) <= 128 or password != request.form.get('confirm_password')):
+            flash('New passwords must match and contain 8–128 characters.', 'danger')
+        else:
+            g.user.full_name = name
+            if password:
+                g.user.set_password(password)
+            db.session.commit()
+            flash('Account updated.', 'success')
+            return redirect(url_for('auth.settings'))
+    return render_template('settings.html', user=g.user)

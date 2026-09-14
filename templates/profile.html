@@ -38,20 +38,14 @@
                     <span class="detail-value">{{ user.created_at.strftime('%Y-%m-%d %H:%M UTC') if user.created_at else 'N/A' }}</span>
                 </div>
 
-                <div class="detail-item">
-                    <span class="detail-label">Security Hashing</span>
-                    <span class="detail-value text-emerald">Werkzeug PBKDF2:SHA256</span>
-                </div>
 
-                <div class="detail-item">
-                    <span class="detail-label">Database Storage</span>
-                    <span class="detail-value">SQLite (fitai.db)</span>
-                </div>
+
+
             </div>
 
             <div class="profile-actions mt-4">
                 <a href="{{ url_for('auth.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">Sign Out</a>
+                <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-outline-danger">Sign Out</button></form>
             </div>
         </div>
     </div>

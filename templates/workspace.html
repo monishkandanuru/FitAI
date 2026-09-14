@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}<section class="container workspace"><nav class="workspace-nav" aria-label="Fitness tools">
+{% for endpoint, label in [('dashboard','Overview'),('bmi','BMI calculator'),('workout','Workouts'),('diet','Meals'),('progress','Progress'),('settings','Settings')] %}
+<a class="{% if request.endpoint == 'auth.' + endpoint %}active{% endif %}" href="{{ url_for('auth.' + endpoint) }}">{{ label }}</a>{% endfor %}</nav>
+{% block workspace %}{% endblock %}</section>{% endblock %}

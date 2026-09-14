@@ -1,32 +1,21 @@
-"""
-Main Blueprint Routes
-Contains primary web navigation endpoints and baseline APIs.
-"""
-
-from datetime import datetime
-from flask import Blueprint, render_template, jsonify, current_app
-
+from datetime import datetime, timezone
+from flask import Blueprint, render_template, jsonify
+from sqlalchemy import text
+from models import db
 main_bp = Blueprint('main', __name__)
-
 
 @main_bp.route('/')
 def homepage():
-    """Renders the FitAI landing page."""
-    return render_template(
-        'index.html',
-        app_name="FitAI",
-        tagline="AI Powered Fitness & Nutrition Coach"
-    )
-
+    return render_template('index.html')
 
 @main_bp.route('/health')
 def health_check():
-    """System health check endpoint for monitoring."""
-    return jsonify({
-        "status": "healthy",
-        "app_name": "FitAI",
-        "tagline": "AI Powered Fitness & Nutrition Coach",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "environment": current_app.config.get('ENV', 'development'),
-        "database": "SQLite (configured)"
-    }), 200
+    try:
+        db.session.execute(text('SELECT 1'))
+        db.session.execute(text('SELECT id FROM users LIMIT 1'))
+        db.session.execute(text('SELECT id FROM bmi_records LIMIT 1'))
+        db.session.execute(text('SELECT id FROM activities LIMIT 1'))
+    except Exception:
+        db.session.rollback()
+        return jsonify(status='unavailable', database='unavailable'), 503
+    return jsonify(status='healthy', database='connected', timestamp=datetime.now(timezone.utc).isoformat())

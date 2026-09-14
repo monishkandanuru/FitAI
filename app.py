@@ -5,9 +5,10 @@ Initializes and configures the Flask application with SQLAlchemy and Blueprints.
 
 import os
 from datetime import timedelta
-from flask import Flask, render_template, jsonify, g, redirect, url_for
+from flask import Flask, render_template, jsonify, g, redirect, url_for, request
 from config import config_by_name, DevelopmentConfig
 from models import db
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -16,16 +17,21 @@ def create_app(config_class=DevelopmentConfig):
     
     # Load configuration
     if isinstance(config_class, str):
-        app.config.from_object(config_by_name.get(config_class, DevelopmentConfig))
+        app.config.from_object(config_by_name[config_class])
     else:
         app.config.from_object(config_class)
 
     # Session Lifetime Configuration
     app.permanent_session_lifetime = timedelta(days=30)
         
-    # Ensure required runtime directories exist
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    os.makedirs(app.config['REPORT_FOLDER'], exist_ok=True)
+    if app.config.get('ENV') == 'production':
+        if not os.getenv('SECRET_KEY') or len(os.environ['SECRET_KEY']) < 32:
+            raise RuntimeError('Production requires a SECRET_KEY of at least 32 characters.')
+        if not os.getenv('DATABASE_URL'):
+            raise RuntimeError('Production requires DATABASE_URL.')
+        if os.getenv('VERCEL') and app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:'):
+            raise RuntimeError('Vercel requires a persistent external database, such as PostgreSQL.')
+    CSRFProtect(app)
 
     # Initialize SQLAlchemy database engine
     db.init_app(app)
@@ -46,9 +52,9 @@ def create_app(config_class=DevelopmentConfig):
     def alias_register():
         return redirect(url_for('auth.register'))
 
-    @app.route('/logout')
+    @app.route('/logout', methods=['POST'])
     def alias_logout():
-        return redirect(url_for('auth.logout'))
+        return redirect(url_for('auth.logout'), code=307)
 
     @app.route('/dashboard')
     def alias_dashboard():
@@ -84,8 +90,29 @@ def create_app(config_class=DevelopmentConfig):
         return dict(current_user=g.get('user', None))
 
     # Auto-create SQLite database tables if missing
-    with app.app_context():
+    if app.config.get('AUTO_CREATE_DB'):
+        with app.app_context():
+            db.create_all()
+
+    @app.cli.command('init-db')
+    def init_db():
+        """Create missing tables without deleting existing data."""
         db.create_all()
+
+    @app.after_request
+    def security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        if g.get('user') or request.path.startswith('/auth'):
+            response.headers['Cache-Control'] = 'no-store'
+        return response
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(error):
+        if request.is_json:
+            return jsonify(success=False, error='Session expired. Refresh the page and try again.'), 400
+        return render_template('error.html', message='Session expired. Refresh the form and try again.'), 400
 
     # Register Error Handlers
     @app.errorhandler(404)
@@ -103,6 +130,7 @@ def create_app(config_class=DevelopmentConfig):
 
     @app.errorhandler(500)
     def internal_error(error):
+        db.session.rollback()
         return jsonify({
             "error": "Internal Server Error",
             "message": "An unexpected error occurred in the FitAI backend service."
@@ -112,7 +140,7 @@ def create_app(config_class=DevelopmentConfig):
 
 
 # Application instance for gunicorn / flask CLI
-app = create_app(os.environ.get('FLASK_ENV', 'development'))
+app = create_app(os.environ.get('FLASK_ENV', 'production' if os.getenv('VERCEL') else 'development'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

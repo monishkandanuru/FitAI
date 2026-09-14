@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FitAI – AI Powered Fitness & Nutrition Coach. Personalized workout plans, intelligent macro tracking, and real-time athletic analytics.">
+    <meta name="description" content="FitAI – Your Fitness & Nutrition Journal. Track workouts, meals, and adult BMI measurements in your private journal.">
     <meta name="theme-color" content="#0d0f17">
-    <title>{% block title %}FitAI – AI Powered Fitness & Nutrition Coach{% endblock %}</title>
-    
+    <title>{% block title %}FitAI – Your Fitness & Nutrition Journal{% endblock %}</title>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-    
+
     <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -44,13 +44,13 @@
                 </div>
                 <div class="logo-text-group">
                     <span class="logo-title">FitAI</span>
-                    <span class="logo-badge">PRO</span>
+
                 </div>
             </a>
 
             <div class="nav-links" id="nav-menu">
                 <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a>
-                
+
                 {% if g.user %}
                     <a href="{{ url_for('auth.dashboard') }}" class="nav-link {% if 'dashboard' in request.path %}active{% endif %}">Dashboard</a>
                     <a href="{{ url_for('auth.profile') }}" class="nav-link {% if 'profile' in request.path %}active{% endif %}">Profile</a>
@@ -67,7 +67,7 @@
                         </div>
                         <span class="user-nav-name">{{ g.user.full_name.split()[0] }}</span>
                     </div>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm nav-auth-btn">Logout</a>
+                    <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-secondary btn-sm nav-auth-btn">Logout</button></form>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm nav-auth-btn">Register</a>
@@ -121,22 +121,10 @@
                 <div class="brand-logo">
                     <span class="logo-title">FitAI</span>
                 </div>
-                <p class="footer-tagline">AI Powered Fitness & Nutrition Coach</p>
+                <p class="footer-tagline">Your Fitness & Nutrition Journal</p>
                 <p class="footer-copy">&copy; 2026 FitAI Engine. Built with Python 3.13 & Flask.</p>
             </div>
-            <div class="footer-links">
-                <div class="link-group">
-                    <h4>Core Stack</h4>
-                    <span class="footer-pill">Python 3.13+</span>
-                    <span class="footer-pill">Flask Framework</span>
-                    <span class="footer-pill">SQLite DB</span>
-                </div>
-                <div class="link-group">
-                    <h4>Security</h4>
-                    <span class="footer-pill">Werkzeug Hashing</span>
-                    <span class="footer-pill">Flask Sessions</span>
-                </div>
-            </div>
+            <div class="footer-links"><a href="{{ url_for('auth.bmi') }}">BMI calculator</a><a href="{{ url_for('auth.workout') }}">Workout journal</a><a href="{{ url_for('auth.diet') }}">Meal journal</a></div>
         </div>
     </footer>
 

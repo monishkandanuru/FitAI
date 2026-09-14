@@ -4,7 +4,7 @@ Stores individual BMI calculation results per user.
 Table is created automatically by SQLAlchemy if it does not exist.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from models import db
 
 
@@ -20,7 +20,7 @@ class BmiRecord(db.Model):
     gender       = db.Column(db.String(10), nullable=False)   # 'male' | 'female'
     bmi_value    = db.Column(db.Float, nullable=False)
     bmi_category = db.Column(db.String(30), nullable=False)
-    recorded_at  = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    recorded_at  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), nullable=False)
 
     # Relationship back to the User model
     user = db.relationship('User', backref=db.backref('bmi_records', lazy=True))

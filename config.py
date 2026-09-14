@@ -1,54 +1,40 @@
-"""
-FitAI Configuration Module
-Defines settings for Development, Production, and Testing environments.
-"""
-
+"""Environment configuration; production requires persistent storage."""
 import os
-
+import secrets
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+def database_url():
+    value = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR}/fitai.db')
+    if value.startswith(('postgres://', 'postgresql://')):
+        value = 'postgresql+psycopg://' + value.split('://', 1)[1]
+    return value
 
 class Config:
-    """Base Configuration"""
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'fitai-secret-key-change-in-production-2026')
+    SECRET_KEY = os.getenv('SECRET_KEY') or secrets.token_hex(32)
     DEBUG = False
     TESTING = False
-    
-    # SQLite Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        f"sqlite:///{os.path.join(BASE_DIR, 'fitai.db')}"
-    )
+    SQLALCHEMY_DATABASE_URI = database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    # Storage Locations
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-    REPORT_FOLDER = os.path.join(BASE_DIR, 'reports')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload limit
-
+    SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
+    MAX_CONTENT_LENGTH = 1024 * 1024
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    AUTO_CREATE_DB = True
 
 class DevelopmentConfig(Config):
-    """Development Environment Configuration"""
-    DEBUG = True
     ENV = 'development'
 
-
 class ProductionConfig(Config):
-    """Production Environment Configuration"""
-    DEBUG = False
     ENV = 'production'
-
+    SESSION_COOKIE_SECURE = True
+    AUTO_CREATE_DB = False
 
 class TestingConfig(Config):
-    """Testing Environment Configuration"""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     ENV = 'testing'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
-
-config_by_name = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'testing': TestingConfig,
-    'default': DevelopmentConfig
-}
+config_by_name = {'development': DevelopmentConfig, 'production': ProductionConfig,
+                  'testing': TestingConfig, 'default': DevelopmentConfig}
