@@ -1,19 +1,25 @@
 """
 FitAI Application Entrypoint
-Initializes and configures the Flask application with SQLAlchemy and Blueprints.
+Initializes and configures the Flask application with SQLAlchemy, Blueprints, and Vercel/WSGI readiness.
 """
 
 import os
 from datetime import timedelta
 from flask import Flask, render_template, jsonify, g, redirect, url_for
 from config import config_by_name, DevelopmentConfig
-from models import db
+from models import db, seed_initial_exercises
 
 
-def create_app(config_class=DevelopmentConfig):
+def create_app(config_class=None):
     """Application factory for FitAI."""
     app = Flask(__name__)
-    
+
+    if config_class is None:
+        env_name = os.environ.get('FLASK_ENV') or (
+            'production' if os.environ.get('VERCEL') else 'development'
+        )
+        config_class = config_by_name.get(env_name, DevelopmentConfig)
+
     # Load configuration
     if isinstance(config_class, str):
         app.config.from_object(config_by_name.get(config_class, DevelopmentConfig))
@@ -22,10 +28,15 @@ def create_app(config_class=DevelopmentConfig):
 
     # Session Lifetime Configuration
     app.permanent_session_lifetime = timedelta(days=30)
-        
-    # Ensure required runtime directories exist
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    os.makedirs(app.config['REPORT_FOLDER'], exist_ok=True)
+
+    # Ensure required runtime directories exist (guarded for read-only serverless environments)
+    for folder_key in ('UPLOAD_FOLDER', 'REPORT_FOLDER'):
+        folder_path = app.config.get(folder_key)
+        if folder_path:
+            try:
+                os.makedirs(folder_path, exist_ok=True)
+            except OSError:
+                pass
 
     # Initialize SQLAlchemy database engine
     db.init_app(app)
@@ -33,7 +44,7 @@ def create_app(config_class=DevelopmentConfig):
     # Register Blueprints
     from routes.main import main_bp
     from routes.auth import auth_bp
-    
+
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
 
@@ -66,6 +77,14 @@ def create_app(config_class=DevelopmentConfig):
     def alias_workout():
         return redirect(url_for('auth.workout'))
 
+    @app.route('/workout/camera')
+    def alias_workout_camera():
+        return redirect(url_for('auth.workout_camera'))
+
+    @app.route('/body-assessment')
+    def alias_body_assessment():
+        return redirect(url_for('auth.body_assessment'))
+
     @app.route('/diet')
     def alias_diet():
         return redirect(url_for('auth.diet'))
@@ -83,9 +102,34 @@ def create_app(config_class=DevelopmentConfig):
     def inject_user():
         return dict(current_user=g.get('user', None))
 
-    # Auto-create SQLite database tables if missing
+    # Security headers
+    @app.after_request
+    def set_security_headers(response):
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        return response
+
+    # Auto-create database tables if missing and seed initial dataset
     with app.app_context():
+        try:
+            db.create_all()
+            try:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text("ALTER TABLE workout_logs ADD COLUMN form_score INTEGER"))
+                    conn.commit()
+            except Exception:
+                pass
+            seed_initial_exercises()
+        except Exception as exc:
+            app.logger.warning(f"Database initialization warning: {exc}")
+
+    @app.cli.command("init-db")
+    def init_db_command():
+        """Explicit CLI command to initialize database tables and seed exercises."""
         db.create_all()
+        seed_initial_exercises()
+        print("Initialized FitAI database and seeded exercises.")
 
     # Register Error Handlers
     @app.errorhandler(404)
@@ -111,8 +155,8 @@ def create_app(config_class=DevelopmentConfig):
     return app
 
 
-# Application instance for gunicorn / flask CLI
-app = create_app(os.environ.get('FLASK_ENV', 'development'))
+# Application instance for Vercel / gunicorn / flask CLI
+app = create_app()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

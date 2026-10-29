@@ -2,14 +2,19 @@
 __pycache__/
 *.py[cod]
 *.pyo
+.pytest_cache/
 
 # Virtual Environment
 venv/
+.venv/
 .env
 
 # Database
 *.db
 *.sqlite3
+
+# Build Artifacts
+public/
 
 # macOS
 .DS_Store

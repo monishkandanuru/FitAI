@@ -1,0 +1,1469 @@
+{% extends 'base.html' %}
+
+{% block title %}Workout Camera – Live Exercise Counter – FitAI Coach{% endblock %}
+
+{% block content %}
+<div class="dash-layout-container">
+
+    <!-- ── Left Sidebar ────────────────────────────────────────────────── -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+        <div class="sidebar-user-info">
+            <div class="user-avatar-md">
+                <span>{{ g.user.full_name[:2].upper() if g.user and g.user.full_name else 'AI' }}</span>
+            </div>
+            <div class="sidebar-user-details">
+                <span class="sidebar-user-name">{{ g.user.full_name if g.user else 'Guest User' }}</span>
+                <span class="sidebar-user-email">{{ g.user.email if g.user else '' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('auth.dashboard') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('auth.bmi') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v18M3 12h18M5 7l14 10M5 17L19 7" />
+                </svg>
+                <span>BMI Calculator</span>
+            </a>
+            <a href="{{ url_for('auth.workout') }}" class="sidebar-item active">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6" />
+                </svg>
+                <span>Workout Planner</span>
+            </a>
+            <a href="{{ url_for('auth.diet') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                <span>Diet Planner</span>
+            </a>
+            <a href="{{ url_for('auth.progress') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg>
+                <span>Progress</span>
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('auth.settings') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-item sidebar-logout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ────────────────────────────────────────────────── -->
+    <main class="dash-main-content">
+        <div class="dash-container">
+
+            <!-- Page Header -->
+            <div class="section-title-row mb-3" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="display:inline-flex; align-items:center; gap:0.45rem; font-size:0.82rem; font-weight:600;
+                                color:var(--primary); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2);
+                                padding:0.25rem 0.8rem; border-radius:var(--radius-full); margin-bottom:0.6rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Computer Vision Motion Core
+                    </div>
+                    <h1 class="section-heading" style="font-size:1.9rem;">Exercise Repetition Counter</h1>
+                    <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.25rem;">
+                        Real-time pose tracking architecture automatically calculates angles to count exercises reps, workout duration, and calories.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('auth.workout') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span>Back to Workout Planner</span>
+                </a>
+            </div>
+
+            <!-- Live Exercise Counter HUD Display -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                
+                <!-- Total Rep Count -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center; border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <span id="rep-count-label" style="font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">Completed Push-Ups</span>
+                    <div id="rep-count-display" style="font-family: var(--font-heading); font-size: 2.6rem; color: var(--primary); font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        0
+                    </div>
+                </div>
+
+                <!-- Current State (UP / DOWN) -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Movement State</span>
+                    <div id="rep-state-display" style="font-family: var(--font-heading); font-size: 2.2rem; color: #10b981; font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        UP
+                    </div>
+                </div>
+
+                <!-- Live Joint Angle -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+                    <span id="angle-label-display" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Elbow Angle</span>
+                    <div id="elbow-angle-display" style="font-family: var(--font-heading); font-size: 2.2rem; color: #f59e0b; font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        --°
+                    </div>
+                </div>
+
+                <!-- Workout Timer -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Workout Timer</span>
+                    <div id="workout-timer-display" style="font-family: var(--font-heading); font-size: 2.2rem; color: #06b6d4; font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        00:00
+                    </div>
+                </div>
+
+                <!-- Estimated Calorie Burn -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Calories Burned</span>
+                    <div id="calories-burned-display" style="font-family: var(--font-heading); font-size: 2.2rem; color: #f43f5e; font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        0.0 <span style="font-size: 1.1rem; font-weight: 600;">kcal</span>
+                    </div>
+                </div>
+
+                <!-- Form Score Card -->
+                <div class="glass-card" style="padding: 1.25rem; text-align: center; border: 1px solid rgba(139, 92, 246, 0.4);">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: #8b5cf6; text-transform: uppercase; letter-spacing: 0.5px;">Form Score</span>
+                    <div id="form-score-display" style="font-family: var(--font-heading); font-size: 2.6rem; color: #8b5cf6; font-weight: 900; line-height: 1.1; margin-top: 0.2rem;">
+                        --
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Form Feedback Panel ──────────────────────────────────── -->
+            <div id="form-feedback-panel" class="glass-card" style="padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; border-left: 3px solid #8b5cf6; display: flex; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                    <div style="width:36px; height:36px; border-radius:50%; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; justify-content:center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:0.8rem; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.5px;">Form Analysis</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <ul id="form-feedback-list" style="list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:0.5rem;">
+                        <li style="font-size:0.88rem; color:var(--text-muted); font-style:italic;">Start camera to see real-time form feedback…</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Camera Control & Feed Card -->
+            <div class="glass-card" style="padding: 1.75rem; text-align: center;">
+                
+                <!-- Action Controls Bar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; background: rgba(15, 23, 42, 0.6); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="camera-status-indicator" style="width: 12px; height: 12px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+                            <span id="camera-status-text" style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Camera Standby</span>
+                        </div>
+
+                        <!-- Exercise Selector Dropdown (Supporting 7 core exercises) -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label for="exercise-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Counter Mode:</label>
+                            <select id="exercise-select" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.4rem 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; outline: none; cursor: pointer;">
+                                <option value="pushup">Push-Up Counter</option>
+                                <option value="squat">Squat Counter</option>
+                                <option value="lunge">Lunge Counter</option>
+                                <option value="jumpingjack">Jumping Jacks</option>
+                                <option value="situp">Sit-Up Counter</option>
+                                <option value="bicepcurl">Bicep Curl</option>
+                                <option value="shoulderpress">Shoulder Press</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button id="toggle-voice-btn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 0.9rem;" title="Toggle Voice Coach">
+                            <svg id="voice-icon-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                            <svg id="voice-icon-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                            <span id="voice-btn-text">Voice On</span>
+                        </button>
+
+                        <button id="reset-counter-btn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                            <span>Reset Stats</span>
+                        </button>
+
+                        <button id="start-cam-btn" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.2rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>Start Camera</span>
+                        </button>
+
+                        <button id="stop-cam-btn" class="btn btn-secondary btn-sm" disabled style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.2rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
+                            <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
+                            <span>Stop Camera</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video / Canvas Feed Display -->
+                <div style="position: relative; width: 100%; max-width: 720px; margin: 0 auto; border-radius: var(--radius-lg); overflow: hidden; background: #0b0f19; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                    
+                    <!-- Hidden Video element fed to MediaPipe -->
+                    <video id="webcam-video" playsinline style="display: none;"></video>
+                    
+                    <!-- Overlay Canvas -->
+                    <canvas id="pose-canvas" width="640" height="480" style="width: 100%; height: auto; display: block; background: #0b0f19;"></canvas>
+
+                    <!-- Initial Standby Overlay Message -->
+                    <div id="camera-placeholder-overlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(11, 15, 25, 0.85); padding: 2rem; color: var(--text-muted);">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </div>
+                        <h3 id="overlay-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Pose Counter Camera Ready</h3>
+                        <p id="overlay-description" style="font-size: 0.88rem; color: var(--text-muted); max-width: 380px; line-height: 1.5;">
+                            Click "Start Camera" to begin automatic repetition tracking. Select counter mode above.
+                        </p>
+                    </div>
+
+                    <!-- 5-Second Preparation Countdown Overlay -->
+                    <div id="camera-countdown-overlay" style="position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(11, 15, 25, 0.8); backdrop-filter: blur(4px); color: #ffffff; z-index: 10;">
+                        <span style="font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); margin-bottom: 0.5rem;">Get Ready</span>
+                        <div id="countdown-number" style="font-family: var(--font-heading); font-size: 6rem; font-weight: 900; color: #ffffff; line-height: 1; text-shadow: 0 0 24px rgba(16, 185, 129, 0.6); transition: transform 0.2s ease;">5</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<!-- ── Session Summary Modal ─────────────────────────────────────────────── -->
+<div id="session-summary-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(5,10,20,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1rem;">
+    <div class="glass-card" style="width:100%; max-width:500px; padding:2rem; text-align:center; border:1px solid rgba(16,185,129,0.35); box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative;">
+
+        <!-- Close button -->
+        <button id="modal-close-btn" style="position:absolute; top:1rem; right:1rem; background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.4rem; line-height:1;">&#x2715;</button>
+
+        <!-- Icon -->
+        <div style="width:60px; height:60px; border-radius:50%; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <h2 style="font-size:1.5rem; font-weight:900; color:var(--text-main); margin-bottom:0.25rem;">Session Complete!</h2>
+        <p id="modal-exercise-label" style="font-size:0.95rem; color:var(--text-muted); margin-bottom:1.5rem;">Push-Up Counter</p>
+
+        <!-- Stats grid -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:1.5rem;">
+            <div class="glass-card" style="padding:0.9rem; border:1px solid rgba(16,185,129,0.25);">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.5px;">Total Reps</div>
+                <div id="modal-reps" style="font-size:2rem; font-weight:900; color:var(--primary); line-height:1.1;">0</div>
+            </div>
+            <div class="glass-card" style="padding:0.9rem;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Duration</div>
+                <div id="modal-duration" style="font-size:2rem; font-weight:900; color:#06b6d4; line-height:1.1;">0:00</div>
+            </div>
+            <div class="glass-card" style="padding:0.9rem;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Calories Burned</div>
+                <div id="modal-calories" style="font-size:2rem; font-weight:900; color:#f43f5e; line-height:1.1;">0.0</div>
+            </div>
+            <div class="glass-card" style="padding:0.9rem; border:1px solid rgba(139,92,246,0.25);">
+                <div style="font-size:0.72rem; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.5px;">Avg Form Score</div>
+                <div id="modal-form-score" style="font-size:2rem; font-weight:900; color:#8b5cf6; line-height:1.1;">--</div>
+            </div>
+        </div>
+
+        <!-- Save / Discard buttons -->
+        <div style="display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap;">
+            <button id="modal-save-btn" class="btn btn-primary" style="padding:0.65rem 1.6rem; display:inline-flex; align-items:center; gap:0.5rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Session
+            </button>
+            <button id="modal-discard-btn" class="btn btn-secondary" style="padding:0.65rem 1.2rem;">Discard</button>
+        </div>
+
+        <p id="modal-save-status" style="font-size:0.82rem; margin-top:0.85rem; min-height:1.2em; color:var(--text-muted);"></p>
+    </div>
+</div>
+
+<!-- MediaPipe JS Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const videoElement = document.getElementById('webcam-video');
+    const canvasElement = document.getElementById('pose-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const placeholderOverlay = document.getElementById('camera-placeholder-overlay');
+    const startBtn = document.getElementById('start-cam-btn');
+    const stopBtn = document.getElementById('stop-cam-btn');
+    const resetBtn = document.getElementById('reset-counter-btn');
+    const statusText = document.getElementById('camera-status-text');
+    const statusIndicator = document.getElementById('camera-status-indicator');
+
+    const repCountDisplay = document.getElementById('rep-count-display');
+    const repCountLabel = document.getElementById('rep-count-label');
+    const repStateDisplay = document.getElementById('rep-state-display');
+    const elbowAngleDisplay = document.getElementById('elbow-angle-display');
+    const angleLabelDisplay = document.getElementById('angle-label-display');
+    const exerciseSelect = document.getElementById('exercise-select');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDescription = document.getElementById('overlay-description');
+
+    const timerDisplay = document.getElementById('workout-timer-display');
+    const caloriesDisplay = document.getElementById('calories-burned-display');
+
+    // Retrieve user weight injected from Flask
+    const userWeightKg = parseFloat("{{ latest_weight }}") || 70.0;
+
+    let camera = null;
+    let pose = null;
+
+    // Timer & Calories Tracking
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    let caloriesBurned = 0.0;
+
+    // ── Workout Active State & Countdown Controls ─────────────────────────
+    let isCountingActive = false;
+    let countdownInterval = null;
+
+    const countdownOverlay = document.getElementById('camera-countdown-overlay');
+    const countdownNumber  = document.getElementById('countdown-number');
+
+    function stopCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        if (countdownOverlay) {
+            countdownOverlay.style.display = 'none';
+        }
+    }
+
+    function startCountdown(onComplete) {
+        stopCountdown();
+        isCountingActive = false;
+
+        let count = 5;
+        if (countdownOverlay) countdownOverlay.style.display = 'flex';
+        if (countdownNumber) {
+            countdownNumber.textContent = count;
+            countdownNumber.style.color = '#ffffff';
+        }
+
+        // Announce initial 5
+        speakCoach(`${count}`, true);
+
+        countdownInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                if (countdownNumber) countdownNumber.textContent = count;
+                speakCoach(`${count}`, true);
+            } else if (count === 0) {
+                if (countdownNumber) {
+                    countdownNumber.textContent = "GO!";
+                    countdownNumber.style.color = "#10b981";
+                }
+                speakCoach("Go!", true);
+            } else {
+                stopCountdown();
+                isCountingActive = true;
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+            }
+        }, 1000);
+    }
+
+    // ── Voice Coach Module (Web Speech API) ────────────────────────────────
+    let isVoiceMuted = false;
+    let lastRepCount = 0;
+    let lastFormTipTime = 0;
+    let lastSpokenTip = "";
+    let lastSpokenTipTimeMap = {};
+
+    const toggleVoiceBtn = document.getElementById('toggle-voice-btn');
+    const voiceIconOn    = document.getElementById('voice-icon-on');
+    const voiceIconOff   = document.getElementById('voice-icon-off');
+    const voiceBtnText   = document.getElementById('voice-btn-text');
+
+    function speakCoach(text, cancelCurrent = false) {
+        if (isVoiceMuted || !('speechSynthesis' in window)) return;
+        try {
+            if (cancelCurrent) {
+                window.speechSynthesis.cancel();
+            } else if (window.speechSynthesis.speaking) {
+                // Avoid speech overlap if non-priority speech is active
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        } catch (err) {
+            console.warn("SpeechSynthesis error:", err);
+        }
+    }
+
+    if (toggleVoiceBtn) {
+        toggleVoiceBtn.addEventListener('click', function() {
+            isVoiceMuted = !isVoiceMuted;
+            if (isVoiceMuted) {
+                window.speechSynthesis.cancel();
+                if (voiceIconOn) voiceIconOn.style.display = 'none';
+                if (voiceIconOff) voiceIconOff.style.display = 'inline';
+                if (voiceBtnText) voiceBtnText.textContent = 'Voice Muted';
+                toggleVoiceBtn.style.color = '#ef4444';
+            } else {
+                if (voiceIconOn) voiceIconOn.style.display = 'inline';
+                if (voiceIconOff) voiceIconOff.style.display = 'none';
+                if (voiceBtnText) voiceBtnText.textContent = 'Voice On';
+                toggleVoiceBtn.style.color = 'var(--text-main)';
+                speakCoach("Voice coaching enabled");
+            }
+        });
+    }
+
+    // Geometry Helper: Calculate angle (in degrees) formed by 3 joint points (A-B-C)
+    function calculateAngle(a, b, c) {
+        const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+        let angle = Math.abs((radians * 180.0) / Math.PI);
+        if (angle > 180.0) {
+            angle = 360.0 - angle;
+        }
+        return Math.round(angle);
+    }
+
+    // Abstract Base Counter Class
+    class ExerciseCounter {
+        constructor(met) {
+            this.count = 0;
+            this.state = "UP"; // default UP
+            this.met = met; // MET value for calorie tracking
+        }
+
+        reset() {
+            this.count = 0;
+            this.state = "UP";
+        }
+
+        process(landmarks) {
+            throw new Error("process() must be implemented by subclass");
+        }
+    }
+
+    // 1. Push-Up Rep Counter (MET: 8.0)
+    class PushupCounter extends ExerciseCounter {
+        constructor() { super(8.0); }
+        process(landmarks) {
+            const leftShoulder = landmarks[11], leftElbow = landmarks[13], leftWrist = landmarks[15];
+            const rightShoulder = landmarks[12], rightElbow = landmarks[14], rightWrist = landmarks[16];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftElbow ? (leftElbow.visibility || 0) : 0;
+            const rightVis = rightElbow ? (rightElbow.visibility || 0) : 0;
+
+            if (leftShoulder && leftElbow && leftWrist && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+                activeLandmark = leftElbow;
+            } else if (rightShoulder && rightElbow && rightWrist && rightVis > 0.4) {
+                angle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+                activeLandmark = rightElbow;
+            }
+
+            if (angle !== null) {
+                // Guard: only enter DOWN if coming from UP (prevents double-count on stutter)
+                if (angle <= 90 && this.state === 'UP') {
+                    this.state = 'DOWN';
+                } else if (angle >= 160 && this.state === 'DOWN') {
+                    this.state = 'UP';
+                    this.count++;
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: 'Elbow' };
+            }
+            return null;
+        }
+    }
+
+    // 2. Squat Rep Counter (MET: 5.0)
+    class SquatCounter extends ExerciseCounter {
+        constructor() { super(5.0); }
+        process(landmarks) {
+            const leftHip = landmarks[23], leftKnee = landmarks[25], leftAnkle = landmarks[27];
+            const rightHip = landmarks[24], rightKnee = landmarks[26], rightAnkle = landmarks[28];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftKnee ? (leftKnee.visibility || 0) : 0;
+            const rightVis = rightKnee ? (rightKnee.visibility || 0) : 0;
+
+            if (leftHip && leftKnee && leftAnkle && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftHip, leftKnee, leftAnkle);
+                activeLandmark = leftKnee;
+            } else if (rightHip && rightKnee && rightAnkle && rightVis > 0.4) {
+                angle = calculateAngle(rightHip, rightKnee, rightAnkle);
+                activeLandmark = rightKnee;
+            }
+
+            if (angle !== null) {
+                // Guard: only enter DOWN if coming from UP
+                if (angle <= 100 && this.state === 'UP') {
+                    this.state = 'DOWN';
+                } else if (angle >= 160 && this.state === 'DOWN') {
+                    this.state = 'UP';
+                    this.count++;
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: 'Knee' };
+            }
+            return null;
+        }
+    }
+
+    // 3. Lunge Rep Counter (MET: 4.0)
+    class LungeCounter extends ExerciseCounter {
+        constructor() { super(4.0); }
+        process(landmarks) {
+            const leftHip = landmarks[23], leftKnee = landmarks[25], leftAnkle = landmarks[27];
+            const rightHip = landmarks[24], rightKnee = landmarks[26], rightAnkle = landmarks[28];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftKnee ? (leftKnee.visibility || 0) : 0;
+            const rightVis = rightKnee ? (rightKnee.visibility || 0) : 0;
+
+            if (leftHip && leftKnee && leftAnkle && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftHip, leftKnee, leftAnkle);
+                activeLandmark = leftKnee;
+            } else if (rightHip && rightKnee && rightAnkle && rightVis > 0.4) {
+                angle = calculateAngle(rightHip, rightKnee, rightAnkle);
+                activeLandmark = rightKnee;
+            }
+
+            if (angle !== null) {
+                // Guard: only enter DOWN if coming from UP
+                if (angle <= 100 && this.state === 'UP') {
+                    this.state = 'DOWN';
+                } else if (angle >= 155 && this.state === 'DOWN') {
+                    this.state = 'UP';
+                    this.count++;
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: 'Knee' };
+            }
+            return null;
+        }
+    }
+
+    // 4. Jumping Jacks Counter (MET: 8.0)
+    class JumpingJackCounter extends ExerciseCounter {
+        constructor() { super(8.0); this.state = "REST"; }
+        reset() { super.reset(); this.state = "REST"; }
+        process(landmarks) {
+            const leftHip = landmarks[23], leftShoulder = landmarks[11], leftWrist = landmarks[15];
+            const rightHip = landmarks[24], rightShoulder = landmarks[12], rightWrist = landmarks[16];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftShoulder ? (leftShoulder.visibility || 0) : 0;
+            const rightVis = rightShoulder ? (rightShoulder.visibility || 0) : 0;
+
+            if (leftHip && leftShoulder && leftWrist && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftHip, leftShoulder, leftWrist);
+                activeLandmark = leftShoulder;
+            } else if (rightHip && rightShoulder && rightWrist && rightVis > 0.4) {
+                angle = calculateAngle(rightHip, rightShoulder, rightWrist);
+                activeLandmark = rightShoulder;
+            }
+
+            if (angle !== null) {
+                if (angle >= 130) {
+                    this.state = "UP";
+                } else if (angle <= 45) {
+                    if (this.state === "UP") {
+                        this.state = "REST";
+                        this.count++;
+                    }
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: "Arm/Torso" };
+            }
+            return null;
+        }
+    }
+
+    // 5. Sit-Up Rep Counter (MET: 6.0)
+    class SitupCounter extends ExerciseCounter {
+        constructor() { super(6.0); this.state = "DOWN"; }
+        reset() { super.reset(); this.state = "DOWN"; }
+        process(landmarks) {
+            const leftShoulder = landmarks[11], leftHip = landmarks[23], leftKnee = landmarks[25];
+            const rightShoulder = landmarks[12], rightHip = landmarks[24], rightKnee = landmarks[26];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftHip ? (leftHip.visibility || 0) : 0;
+            const rightVis = rightHip ? (rightHip.visibility || 0) : 0;
+
+            if (leftShoulder && leftHip && leftKnee && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftShoulder, leftHip, leftKnee);
+                activeLandmark = leftHip;
+            } else if (rightShoulder && rightHip && rightKnee && rightVis > 0.4) {
+                angle = calculateAngle(rightShoulder, rightHip, rightKnee);
+                activeLandmark = rightHip;
+            }
+
+            if (angle !== null) {
+                if (angle <= 70) {
+                    this.state = "UP";
+                } else if (angle >= 130) {
+                    if (this.state === "UP") {
+                        this.state = "DOWN";
+                        this.count++;
+                    }
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: "Hip" };
+            }
+            return null;
+        }
+    }
+
+    // 6. Bicep Curl Rep Counter (MET: 4.0)
+    class BicepCurlCounter extends ExerciseCounter {
+        constructor() { super(4.0); this.state = "DOWN"; }
+        reset() { super.reset(); this.state = "DOWN"; }
+        process(landmarks) {
+            const leftShoulder = landmarks[11], leftElbow = landmarks[13], leftWrist = landmarks[15];
+            const rightShoulder = landmarks[12], rightElbow = landmarks[14], rightWrist = landmarks[16];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftElbow ? (leftElbow.visibility || 0) : 0;
+            const rightVis = rightElbow ? (rightElbow.visibility || 0) : 0;
+
+            if (leftShoulder && leftElbow && leftWrist && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+                activeLandmark = leftElbow;
+            } else if (rightShoulder && rightElbow && rightWrist && rightVis > 0.4) {
+                angle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+                activeLandmark = rightElbow;
+            }
+
+            if (angle !== null) {
+                if (angle <= 50) {
+                    this.state = "UP";
+                } else if (angle >= 150) {
+                    if (this.state === "UP") {
+                        this.state = "DOWN";
+                        this.count++;
+                    }
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: "Elbow" };
+            }
+            return null;
+        }
+    }
+
+    // 7. Shoulder Press Rep Counter (MET: 5.0)
+    class ShoulderPressCounter extends ExerciseCounter {
+        constructor() { super(5.0); this.state = "DOWN"; }
+        reset() { super.reset(); this.state = "DOWN"; }
+        process(landmarks) {
+            const leftShoulder = landmarks[11], leftElbow = landmarks[13], leftWrist = landmarks[15];
+            const rightShoulder = landmarks[12], rightElbow = landmarks[14], rightWrist = landmarks[16];
+
+            let angle = null;
+            let activeLandmark = null;
+
+            const leftVis = leftElbow ? (leftElbow.visibility || 0) : 0;
+            const rightVis = rightElbow ? (rightElbow.visibility || 0) : 0;
+
+            if (leftShoulder && leftElbow && leftWrist && leftVis > 0.4 && leftVis >= rightVis) {
+                angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+                activeLandmark = leftElbow;
+            } else if (rightShoulder && rightElbow && rightWrist && rightVis > 0.4) {
+                angle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+                activeLandmark = rightElbow;
+            }
+
+            if (angle !== null) {
+                if (angle >= 150) {
+                    this.state = "UP";
+                } else if (angle <= 90) {
+                    if (this.state === "UP") {
+                        this.state = "DOWN";
+                        this.count++;
+                    }
+                }
+                return { angle, state: this.state, count: this.count, activeLandmark, label: "Elbow" };
+            }
+            return null;
+        }
+    }
+
+    // Exercise registry mapping
+    const counters = {
+        "pushup": new PushupCounter(),
+        "squat": new SquatCounter(),
+        "lunge": new LungeCounter(),
+        "jumpingjack": new JumpingJackCounter(),
+        "situp": new SitupCounter(),
+        "bicepcurl": new BicepCurlCounter(),
+        "shoulderpress": new ShoulderPressCounter()
+    };
+
+    let activeExerciseKey = "pushup";
+
+    // ── Form Checker Module ────────────────────────────────────────────────
+    // Returns { score: 0-100, tips: [string] } for each supported exercise.
+    // Fully decoupled from counter state machines.
+
+    const formScoreDisplay  = document.getElementById('form-score-display');
+    const formFeedbackList  = document.getElementById('form-feedback-list');
+
+    // Track a rolling window of scores for smoothing
+    let formScoreHistory = [];
+    const SCORE_WINDOW = 10;
+
+    function smoothFormScore(newScore) {
+        formScoreHistory.push(newScore);
+        if (formScoreHistory.length > SCORE_WINDOW) formScoreHistory.shift();
+        return Math.round(formScoreHistory.reduce((a, b) => a + b, 0) / formScoreHistory.length);
+    }
+
+    function renderFormFeedback(score, tips) {
+        const smoothed = smoothFormScore(score);
+
+        // Color-grade the score
+        let scoreColor;
+        if (smoothed >= 85)      scoreColor = '#10b981'; // emerald – good
+        else if (smoothed >= 65) scoreColor = '#f59e0b'; // amber   – needs work
+        else                     scoreColor = '#ef4444'; // red     – poor
+
+        formScoreDisplay.textContent = `${smoothed}`;
+        formScoreDisplay.style.color = scoreColor;
+
+        // Render tip badges
+        if (tips.length === 0) {
+            formFeedbackList.innerHTML = '<li style="font-size:0.88rem; color:#10b981; font-weight:600;">✓ Great form – keep it up!</li>';
+        } else {
+            formFeedbackList.innerHTML = tips.map(t => {
+                const isWarn = t.startsWith('!');
+                const text   = isWarn ? t.slice(1).trim() : t;
+                const bg     = isWarn ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)';
+                const border = isWarn ? 'rgba(239,68,68,0.35)' : 'rgba(245,158,11,0.35)';
+                const color  = isWarn ? '#ef4444' : '#f59e0b';
+                return `<li style="font-size:0.83rem; font-weight:600; color:${color}; background:${bg}; border:1px solid ${border}; padding:0.3rem 0.7rem; border-radius:999px; white-space:nowrap;">${text}</li>`;
+            }).join('');
+
+            // Announce voice tip (throttled & heavily cooled down)
+            if (isCountingActive) {
+                const firstTip = tips[0];
+                const cleanText = firstTip.replace(/^!\s*/, '').trim();
+                const now = Date.now();
+
+                const SAME_TIP_COOLDOWN = 6000; // 6 seconds before repeating the exact same warning
+                const GLOBAL_TIP_GAP    = 3500; // 3.5 seconds minimum gap between any warnings
+
+                const lastSpokenForThisTip = lastSpokenTipTimeMap[cleanText] || 0;
+                const timeSinceSameTip = now - lastSpokenForThisTip;
+                const timeSinceAnyTip  = now - lastFormTipTime;
+
+                if (timeSinceAnyTip >= GLOBAL_TIP_GAP && timeSinceSameTip >= SAME_TIP_COOLDOWN) {
+                    lastFormTipTime = now;
+                    lastSpokenTip = cleanText;
+                    lastSpokenTipTimeMap[cleanText] = now;
+                    speakCoach(cleanText, false);
+                }
+            }
+        }
+    }
+
+    // ── Per-exercise form analyzers ───────────────────────────────────────
+    // Each returns { score, tips }. Tips prefixed with '!' are errors; others are warnings.
+
+    const formCheckers = {
+
+        // Push-up: back alignment + depth
+        pushup(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lShoulder = lm[11], lHip = lm[23], lAnkle = lm[27];
+            const rShoulder = lm[12], rHip = lm[24], rAnkle = lm[28];
+            const lElbow = lm[13], rElbow = lm[14];
+
+            // Check torso/back alignment (shoulder-hip-ankle should be ~180° in plank)
+            const leftBack  = lShoulder && lHip && lAnkle  ? calculateAngle(lShoulder, lHip, lAnkle)  : null;
+            const rightBack = rShoulder && rHip && rAnkle  ? calculateAngle(rShoulder, rHip, rAnkle)  : null;
+            const backAngle = leftBack ?? rightBack;
+
+            if (backAngle !== null) {
+                if (backAngle < 155) {
+                    score -= 30;
+                    tips.push('! Keep your back straight');
+                } else if (backAngle < 170) {
+                    score -= 12;
+                    tips.push('Raise your hips slightly');
+                }
+            }
+
+            // Check depth – elbow angle in DOWN position
+            const lElbowAngle = lShoulder && lElbow && lm[15] ? calculateAngle(lShoulder, lElbow, lm[15]) : null;
+            const rElbowAngle = rShoulder && rElbow && lm[16] ? calculateAngle(rShoulder, rElbow, lm[16]) : null;
+            const elbowAngle  = lElbowAngle ?? rElbowAngle;
+
+            const counterState = counters['pushup'].state;
+            if (counterState === 'DOWN' && elbowAngle !== null && elbowAngle > 100) {
+                score -= 20;
+                tips.push('Go lower – aim for 90°');
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Squat: depth + knee tracking
+        squat(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lHip = lm[23], lKnee = lm[25], lAnkle = lm[27], lShoulder = lm[11];
+            const rHip = lm[24], rKnee = lm[26], rAnkle = lm[28], rShoulder = lm[12];
+
+            // Knee angle depth
+            const lKneeAngle = lHip && lKnee && lAnkle ? calculateAngle(lHip, lKnee, lAnkle) : null;
+            const rKneeAngle = rHip && rKnee && rAnkle ? calculateAngle(rHip, rKnee, rAnkle) : null;
+            const kneeAngle  = lKneeAngle ?? rKneeAngle;
+
+            const counterState = counters['squat'].state;
+            if (counterState === 'DOWN' && kneeAngle !== null && kneeAngle > 115) {
+                score -= 25;
+                tips.push('Go lower – squat deeper');
+            }
+
+            // Back upright check (shoulder-hip-knee near 90-180 in deep squat)
+            const lBackAngle = lShoulder && lHip && lKnee ? calculateAngle(lShoulder, lHip, lKnee) : null;
+            const rBackAngle = rShoulder && rHip && rKnee ? calculateAngle(rShoulder, rHip, rKnee) : null;
+            const backAngle  = lBackAngle ?? rBackAngle;
+
+            if (backAngle !== null && backAngle < 50) {
+                score -= 20;
+                tips.push('! Keep your chest up');
+            }
+
+            // Knee-over-toe check: knee x vs ankle x (simple proxy)
+            const activeKnee  = lKnee  || rKnee;
+            const activeAnkle = lAnkle || rAnkle;
+            if (activeKnee && activeAnkle) {
+                if (activeKnee.x < activeAnkle.x - 0.06 || activeKnee.x > activeAnkle.x + 0.06) {
+                    score -= 15;
+                    tips.push('! Keep your knees aligned');
+                }
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Lunge: knee alignment + torso upright
+        lunge(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lHip = lm[23], lKnee = lm[25], lAnkle = lm[27], lShoulder = lm[11];
+            const rHip = lm[24], rKnee = lm[26], rAnkle = lm[28], rShoulder = lm[12];
+
+            const lKneeAngle = lHip && lKnee && lAnkle ? calculateAngle(lHip, lKnee, lAnkle) : null;
+            const rKneeAngle = rHip && rKnee && rAnkle ? calculateAngle(rHip, rKnee, rAnkle) : null;
+            const kneeAngle  = lKneeAngle ?? rKneeAngle;
+
+            const counterState = counters['lunge'].state;
+            if (counterState === 'DOWN' && kneeAngle !== null && kneeAngle > 115) {
+                score -= 25;
+                tips.push('Lunge deeper – 90° at front knee');
+            }
+
+            // Torso upright – shoulder directly over hip (y-diff small)
+            const activeShoulder = lShoulder || rShoulder;
+            const activeHip      = lHip || rHip;
+            if (activeShoulder && activeHip) {
+                const lean = Math.abs(activeShoulder.x - activeHip.x);
+                if (lean > 0.07) {
+                    score -= 15;
+                    tips.push('! Keep your torso upright');
+                }
+            }
+
+            // Knee over ankle
+            const frontKnee  = lKnee  || rKnee;
+            const frontAnkle = lAnkle || rAnkle;
+            if (frontKnee && frontAnkle && Math.abs(frontKnee.x - frontAnkle.x) > 0.08) {
+                score -= 15;
+                tips.push('! Keep your knees aligned');
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Bicep Curl: elbow lock + full range of motion
+        bicepcurl(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lShoulder = lm[11], lElbow = lm[13], lWrist = lm[15];
+            const rShoulder = lm[12], rElbow = lm[14], rWrist = lm[16];
+
+            const lElbowAngle = lShoulder && lElbow && lWrist ? calculateAngle(lShoulder, lElbow, lWrist) : null;
+            const rElbowAngle = rShoulder && rElbow && rWrist ? calculateAngle(rShoulder, rElbow, rWrist) : null;
+            const elbowAngle  = lElbowAngle ?? rElbowAngle;
+
+            const counterState = counters['bicepcurl'].state;
+
+            // At bottom (DOWN): arm should be fully extended
+            if (counterState === 'DOWN' && elbowAngle !== null && elbowAngle < 140) {
+                score -= 25;
+                tips.push('Fully extend arms at the bottom');
+            }
+
+            // At top (UP): should be fully curled
+            if (counterState === 'UP' && elbowAngle !== null && elbowAngle > 70) {
+                score -= 20;
+                tips.push('Curl higher – squeeze the bicep');
+            }
+
+            // Elbow drift: elbow should stay close to torso (x close to shoulder x)
+            const activeElbow    = lElbow || rElbow;
+            const activeShoulder = lShoulder || rShoulder;
+            if (activeElbow && activeShoulder && Math.abs(activeElbow.x - activeShoulder.x) > 0.09) {
+                score -= 15;
+                tips.push('! Keep elbows pinned to your sides');
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Shoulder Press: full overhead extension + elbow lock
+        shoulderpress(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lShoulder = lm[11], lElbow = lm[13], lWrist = lm[15];
+            const rShoulder = lm[12], rElbow = lm[14], rWrist = lm[16];
+
+            const lElbowAngle = lShoulder && lElbow && lWrist ? calculateAngle(lShoulder, lElbow, lWrist) : null;
+            const rElbowAngle = rShoulder && rElbow && rWrist ? calculateAngle(rShoulder, rElbow, rWrist) : null;
+            const elbowAngle  = lElbowAngle ?? rElbowAngle;
+
+            const counterState = counters['shoulderpress'].state;
+
+            // At top (UP): arms must be near fully extended overhead
+            if (counterState === 'UP' && elbowAngle !== null && elbowAngle < 155) {
+                score -= 25;
+                tips.push('! Straighten your arms overhead');
+            }
+
+            // At bottom (DOWN): elbows should be at roughly 90°
+            if (counterState === 'DOWN' && elbowAngle !== null && elbowAngle > 120) {
+                score -= 15;
+                tips.push('Lower to 90° before pressing');
+            }
+
+            // Wrist over elbow vertical check
+            const activeElbow = lElbow || rElbow;
+            const activeWrist = lWrist || rWrist;
+            if (activeElbow && activeWrist && Math.abs(activeElbow.x - activeWrist.x) > 0.08) {
+                score -= 10;
+                tips.push('Keep wrists stacked over elbows');
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Jumping Jacks: arm extension, leg spread, and arm straightness
+        jumpingjack(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lHip = lm[23], lShoulder = lm[11], lWrist = lm[15], lElbow = lm[13], lAnkle = lm[27];
+            const rHip = lm[24], rShoulder = lm[12], rWrist = lm[16], rElbow = lm[14], rAnkle = lm[28];
+
+            // Arm-torso angle (hip-shoulder-wrist)
+            const lArmAngle = lHip && lShoulder && lWrist ? calculateAngle(lHip, lShoulder, lWrist) : null;
+            const rArmAngle = rHip && rShoulder && rWrist ? calculateAngle(rHip, rShoulder, rWrist) : null;
+            const armAngle  = lArmAngle ?? rArmAngle;
+
+            const counterState = counters['jumpingjack'].state;
+
+            // Arm height extension check per state
+            if (counterState === 'UP' && armAngle !== null && armAngle < 140) {
+                score -= 20;
+                tips.push('Raise arms higher overhead');
+            }
+            if (counterState === 'REST' && armAngle !== null && armAngle > 55) {
+                score -= 15;
+                tips.push('Bring arms all the way down');
+            }
+
+            // Leg spread check in UP state (ankle stance width)
+            if (counterState === 'UP' && lAnkle && rAnkle) {
+                const legSpread = Math.abs(lAnkle.x - rAnkle.x);
+                if (legSpread < 0.20) {
+                    score -= 25;
+                    tips.push('! Jump feet out wider');
+                }
+            }
+
+            // Arm straightness check (elbow angle)
+            const lElbowAngle = lShoulder && lElbow && lWrist ? calculateAngle(lShoulder, lElbow, lWrist) : null;
+            const rElbowAngle = rShoulder && rElbow && rWrist ? calculateAngle(rShoulder, rElbow, rWrist) : null;
+            const elbowAngle  = lElbowAngle ?? rElbowAngle;
+
+            if (elbowAngle !== null && elbowAngle < 135) {
+                score -= 15;
+                tips.push('Keep your arms straight');
+            }
+
+            return { score: Math.max(0, score), tips };
+        },
+
+        // Sit-Up: range of motion & knee bend posture
+        situp(lm) {
+            const tips = [];
+            let score = 100;
+
+            const lShoulder = lm[11], lHip = lm[23], lKnee = lm[25], lAnkle = lm[27];
+            const rShoulder = lm[12], rHip = lm[24], rKnee = lm[26], rAnkle = lm[28];
+
+            // Hip angle (shoulder-hip-knee)
+            const lHipAngle = lShoulder && lHip && lKnee ? calculateAngle(lShoulder, lHip, lKnee) : null;
+            const rHipAngle = rShoulder && rHip && rKnee ? calculateAngle(rShoulder, rHip, rKnee) : null;
+            const hipAngle  = lHipAngle ?? rHipAngle;
+
+            const counterState = counters['situp'].state;
+
+            // Range of motion (sit-up height & lowering depth)
+            if (counterState === 'UP' && hipAngle !== null && hipAngle > 75) {
+                score -= 25;
+                tips.push('Sit up higher – reach knees');
+            }
+            if (counterState === 'DOWN' && hipAngle !== null && hipAngle < 120) {
+                score -= 20;
+                tips.push('Lower all the way back down');
+            }
+
+            // Knee bend posture check (hip-knee-ankle angle)
+            const lKneeAngle = lHip && lKnee && lAnkle ? calculateAngle(lHip, lKnee, lAnkle) : null;
+            const rKneeAngle = rHip && rKnee && rAnkle ? calculateAngle(rHip, rKnee, rAnkle) : null;
+            const kneeAngle  = lKneeAngle ?? rKneeAngle;
+
+            if (kneeAngle !== null && kneeAngle > 135) {
+                score -= 20;
+                tips.push('! Keep your knees bent');
+            }
+
+            return { score: Math.max(0, score), tips };
+        }
+    };
+
+    function runFormCheck(landmarks) {
+        const checker = formCheckers[activeExerciseKey];
+        if (!checker) { return; }
+        const { score, tips } = checker(landmarks);
+        renderFormFeedback(score, tips);
+    }
+
+    function resetFormDisplay() {
+        formScoreHistory = [];
+        formScoreDisplay.textContent = '--';
+        formScoreDisplay.style.color = '#8b5cf6';
+        formFeedbackList.innerHTML = '<li style="font-size:0.88rem; color:var(--text-muted); font-style:italic;">Start camera to see real-time form feedback…</li>';
+    }
+
+    // Initialize MediaPipe Pose Model instance
+    function initPoseModel() {
+        if (pose) return;
+
+        pose = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        });
+
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            enableSegmentation: false,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        pose.onResults(onPoseResults);
+    }
+
+    // Callback when MediaPipe Pose returns landmark detection results
+    function onPoseResults(results) {
+        if (!canvasElement) return;
+
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        // Draw live camera frame
+        if (results.image) {
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        }
+
+        // Draw Pose Skeletal Landmarks & Connectors
+        if (results.poseLandmarks) {
+            drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
+                color: '#10b981',
+                lineWidth: 4
+            });
+            drawLandmarks(canvasCtx, results.poseLandmarks, {
+                color: '#06b6d4',
+                fillColor: '#ffffff',
+                lineWidth: 2,
+                radius: 4
+            });
+
+            // ── Reusable Counter Execution ──────────────────────────────────
+            const activeCounter = counters[activeExerciseKey];
+            const res = activeCounter.process(results.poseLandmarks);
+
+            if (res) {
+                // Update HUD metrics
+                elbowAngleDisplay.textContent = `${res.angle}°`;
+                repCountDisplay.textContent = res.count;
+                repStateDisplay.textContent = res.state;
+                angleLabelDisplay.textContent = `${res.label} Angle`;
+
+                // Announce rep count via Voice Coach ONLY when tracking is active
+                if (isCountingActive && res.count > lastRepCount) {
+                    lastRepCount = res.count;
+                    speakCoach(`${res.count}`, true);
+                }
+
+                if (res.state === "UP" || res.state === "REST") {
+                    repStateDisplay.style.color = "#10b981"; // Emerald
+                } else {
+                    repStateDisplay.style.color = "#06b6d4"; // Cyan
+                }
+
+                // Draw live angle text overlay
+                if (res.activeLandmark) {
+                    canvasCtx.font = "bold 18px Inter, sans-serif";
+                    canvasCtx.fillStyle = "#10b981";
+                    canvasCtx.fillText(`${res.angle}°`, res.activeLandmark.x * canvasElement.width + 12, res.activeLandmark.y * canvasElement.height);
+                }
+            }
+
+            // ── Form Correction Analysis ────────────────────────────────────
+            if (isCountingActive) {
+                runFormCheck(results.poseLandmarks);
+            }
+        }
+
+        canvasCtx.restore();
+    }
+
+    // Timer and Calorie Calculation Clock
+    function startTimerAndCalories() {
+        if (timerInterval) return;
+
+        timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            
+            // Format duration as MM:SS
+            const mins = Math.floor(elapsedSeconds / 60);
+            const secs = elapsedSeconds % 60;
+            timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            // Calculate calorie burn dynamically per second based on active MET value
+            const activeMet = counters[activeExerciseKey].met;
+            const metValuePerSecond = (activeMet * 3.5 * userWeightKg) / (200.0 * 60.0);
+            caloriesBurned += metValuePerSecond;
+            caloriesDisplay.innerHTML = `${caloriesBurned.toFixed(1)} <span style="font-size: 1.1rem; font-weight:600;">kcal</span>`;
+        }, 1000);
+    }
+
+    function stopTimerAndCalories() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // Start Webcam & Motion Tracking
+    async function startCameraFeed() {
+        try {
+            statusText.textContent = "Initializing Camera...";
+            statusIndicator.style.background = "#f59e0b";
+            startBtn.disabled = true;
+
+            initPoseModel();
+
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    if (pose && videoElement) {
+                        await pose.send({ image: videoElement });
+                    }
+                },
+                width: 640,
+                height: 480
+            });
+
+            await camera.start();
+
+            placeholderOverlay.style.display = "none";
+            
+            const currentModeText = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+            statusText.textContent = "Get Ready (Countdown)...";
+            statusIndicator.style.background = "#f59e0b";
+            stopBtn.disabled = false;
+
+            // Reset stats and counters
+            Object.values(counters).forEach(c => c.reset());
+            repCountDisplay.textContent = "0";
+            repStateDisplay.textContent = "UP";
+            repStateDisplay.style.color = "#10b981";
+            elbowAngleDisplay.textContent = "--°";
+            elapsedSeconds = 0;
+            caloriesBurned = 0.0;
+            timerDisplay.textContent = "00:00";
+            caloriesDisplay.innerHTML = `0.0 <span style="font-size: 1.1rem; font-weight:600;">kcal</span>`;
+            lastRepCount = 0;
+            lastFormTipTime = 0;
+            lastSpokenTip = "";
+            lastSpokenTipTimeMap = {};
+            resetFormDisplay();
+
+            // Run 5-second countdown before tracking and timer starts
+            startCountdown(() => {
+                statusText.textContent = `${currentModeText} Active`;
+                statusIndicator.style.background = "#10b981";
+                startTimerAndCalories();
+            });
+        } catch (err) {
+            console.error("Camera access error:", err);
+            statusText.textContent = "Camera Access Denied";
+            statusIndicator.style.background = "#ef4444";
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            alert("Could not access webcam. Please verify browser camera permissions.");
+        }
+    }
+
+    // Stop Webcam Feed – then show session summary modal if reps > 0
+    function stopCameraFeed() {
+        stopCountdown();
+        stopTimerAndCalories();
+        isCountingActive = false;
+
+        if (camera) {
+            camera.stop();
+            camera = null;
+        }
+
+        if (videoElement && videoElement.srcObject) {
+            videoElement.srcObject.getTracks().forEach(track => track.stop());
+            videoElement.srcObject = null;
+        }
+
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        placeholderOverlay.style.display = 'flex';
+
+        statusText.textContent = 'Camera Standby';
+        statusIndicator.style.background = '#64748b';
+
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+        speakCoach("Camera stopped.", true);
+
+        // Show session summary if there were any reps
+        const activeCounter = counters[activeExerciseKey];
+        if (activeCounter.count > 0 || elapsedSeconds >= 5) {
+            showSessionSummary();
+        }
+    }
+
+    // Reset Rep Counter and Session Stats
+    function resetStats() {
+        stopCountdown();
+        isCountingActive = false;
+        Object.values(counters).forEach(c => c.reset());
+        
+        repCountDisplay.textContent = "0";
+        repStateDisplay.textContent = "UP";
+        repStateDisplay.style.color = "#10b981";
+        elbowAngleDisplay.textContent = "--°";
+
+        elapsedSeconds = 0;
+        caloriesBurned = 0.0;
+        timerDisplay.textContent = "00:00";
+        caloriesDisplay.innerHTML = `0.0 <span style="font-size: 1.1rem; font-weight:600;">kcal</span>`;
+
+        lastRepCount = 0;
+        lastFormTipTime = 0;
+        lastSpokenTip = "";
+        lastSpokenTipTimeMap = {};
+
+        resetFormDisplay();
+    }
+
+    // Handle dropdown selector changes
+    exerciseSelect.addEventListener('change', (e) => {
+        activeExerciseKey = e.target.value;
+        resetStats();
+
+        // Update UI dynamic labels
+        const modeText = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+        repCountLabel.textContent = `Completed ${modeText.replace(' Counter', 's').replace(' Jacks', ' Jacks')}`;
+        
+        if (activeExerciseKey === 'pushup' || activeExerciseKey === 'bicepcurl' || activeExerciseKey === 'shoulderpress') {
+            angleLabelDisplay.textContent = 'Elbow Angle';
+            overlayTitle.textContent = `${modeText} Ready`;
+            overlayDescription.textContent = `Click 'Start Camera' to begin. Extend joints past 150-160° and bend below 50-90° to count reps.`;
+        } else if (activeExerciseKey === 'squat' || activeExerciseKey === 'lunge') {
+            angleLabelDisplay.textContent = 'Knee Angle';
+            overlayTitle.textContent = `${modeText} Ready`;
+            overlayDescription.textContent = `Click 'Start Camera' to begin. Stand up straight past 160° and squat down below 100° to count reps.`;
+        } else if (activeExerciseKey === 'jumpingjack') {
+            angleLabelDisplay.textContent = 'Arm/Torso Angle';
+            overlayTitle.textContent = `${modeText} Ready`;
+            overlayDescription.textContent = `Click 'Start Camera' to begin. Swing arms overhead past 130° and lower to sides below 45°.`;
+        } else if (activeExerciseKey === 'situp') {
+            angleLabelDisplay.textContent = 'Hip Angle';
+            overlayTitle.textContent = `${modeText} Ready`;
+            overlayDescription.textContent = `Click 'Start Camera' to begin. Sit up straight below 70° and lay flat back past 130°.`;
+        }
+
+        if (camera) {
+            statusText.textContent = `${modeText} Active`;
+        }
+    });
+
+    // ── Session Summary Modal ────────────────────────────────────────────
+    const summaryModal    = document.getElementById('session-summary-modal');
+    const modalExLabel    = document.getElementById('modal-exercise-label');
+    const modalReps       = document.getElementById('modal-reps');
+    const modalDuration   = document.getElementById('modal-duration');
+    const modalCalories   = document.getElementById('modal-calories');
+    const modalFormScore  = document.getElementById('modal-form-score');
+    const modalSaveBtn    = document.getElementById('modal-save-btn');
+    const modalDiscardBtn = document.getElementById('modal-discard-btn');
+    const modalCloseBtn   = document.getElementById('modal-close-btn');
+    const modalSaveStatus = document.getElementById('modal-save-status');
+
+    function showSessionSummary() {
+        const activeCounter = counters[activeExerciseKey];
+        const modeText      = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+        const mins = Math.floor(elapsedSeconds / 60);
+        const secs = elapsedSeconds % 60;
+        const avgFormScore = formScoreHistory.length
+            ? Math.round(formScoreHistory.reduce((a, b) => a + b, 0) / formScoreHistory.length)
+            : null;
+
+        modalExLabel.textContent   = modeText;
+        modalReps.textContent      = activeCounter.count;
+        modalDuration.textContent  = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        modalCalories.textContent  = caloriesBurned.toFixed(1);
+        modalFormScore.textContent = avgFormScore !== null ? avgFormScore : '--';
+        modalSaveStatus.textContent = '';
+        modalSaveBtn.disabled = false;
+
+        summaryModal.style.display = 'flex';
+        speakCoach(`Workout complete! You completed ${activeCounter.count} reps.`, true);
+    }
+
+    function closeModal() {
+        summaryModal.style.display = 'none';
+    }
+
+    async function saveSession() {
+        const activeCounter = counters[activeExerciseKey];
+        const modeText      = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+        const avgFormScore  = formScoreHistory.length
+            ? Math.round(formScoreHistory.reduce((a, b) => a + b, 0) / formScoreHistory.length)
+            : null;
+
+        modalSaveBtn.disabled = true;
+        modalSaveStatus.textContent = 'Saving…';
+        modalSaveStatus.style.color = 'var(--text-muted)';
+
+        try {
+            const resp = await fetch('/auth/workout/camera/save_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    exercise_name:   modeText,
+                    total_reps:      activeCounter.count,
+                    duration_secs:   elapsedSeconds,
+                    calories_burned: caloriesBurned,
+                    form_score:      avgFormScore
+                })
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                modalSaveStatus.textContent = '✓ Session saved to your Progress log!';
+                modalSaveStatus.style.color = '#10b981';
+                // Auto-close after brief confirmation
+                setTimeout(() => { closeModal(); resetStats(); }, 2000);
+            } else {
+                modalSaveStatus.textContent = `Error: ${data.error}`;
+                modalSaveStatus.style.color = '#ef4444';
+                modalSaveBtn.disabled = false;
+            }
+        } catch (err) {
+            modalSaveStatus.textContent = 'Network error – session not saved.';
+            modalSaveStatus.style.color = '#ef4444';
+            modalSaveBtn.disabled = false;
+        }
+    }
+
+    modalSaveBtn.addEventListener('click', saveSession);
+    modalDiscardBtn.addEventListener('click', () => { closeModal(); resetStats(); });
+    modalCloseBtn.addEventListener('click', () => { closeModal(); resetStats(); });
+    // Close on backdrop click
+    summaryModal.addEventListener('click', (e) => { if (e.target === summaryModal) { closeModal(); resetStats(); } });
+
+    // Event Listeners
+    startBtn.addEventListener('click', startCameraFeed);
+    stopBtn.addEventListener('click', stopCameraFeed);
+    resetBtn.addEventListener('click', resetStats);
+});
+</script>
+{% endblock %}

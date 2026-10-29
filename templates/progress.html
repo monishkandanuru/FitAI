@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+
+{% block title %}Progress Analytics – FitAI Coach{% endblock %}
+
+{% block content %}
+<div class="dash-layout-container">
+
+    <!-- ── Left Sidebar ────────────────────────────────────────────────── -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+        <div class="sidebar-user-info">
+            <div class="user-avatar-md">
+                <span>{{ g.user.full_name[:2].upper() if g.user and g.user.full_name else 'AI' }}</span>
+            </div>
+            <div class="sidebar-user-details">
+                <span class="sidebar-user-name">{{ g.user.full_name if g.user else 'Guest User' }}</span>
+                <span class="sidebar-user-email">{{ g.user.email if g.user else '' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('auth.dashboard') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('auth.bmi') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v18M3 12h18M5 7l14 10M5 17L19 7" />
+                </svg>
+                <span>BMI Calculator</span>
+            </a>
+            <a href="{{ url_for('auth.workout') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6" />
+                </svg>
+                <span>Workout Planner</span>
+            </a>
+            <a href="{{ url_for('auth.workout_camera') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                </svg>
+                <span>Workout Camera</span>
+            </a>
+            <a href="{{ url_for('auth.body_assessment') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="5" r="3" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="11" x2="16" y2="11" />
+                    <line x1="12" y1="16" x2="9" y2="21" />
+                    <line x1="12" y1="16" x2="15" y2="21" />
+                </svg>
+                <span>Body Assessment</span>
+            </a>
+            <a href="{{ url_for('auth.diet') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                <span>Diet Planner</span>
+            </a>
+            <a href="{{ url_for('auth.progress') }}" class="sidebar-item active">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg>
+                <span>Progress</span>
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('auth.settings') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-item sidebar-logout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ────────────────────────────────────────────────── -->
+    <main class="dash-main-content">
+        <div class="dash-container">
+
+            <!-- Page Header -->
+            <div class="section-title-row mb-3" style="margin-bottom: 1.5rem;">
+                <div>
+                    <div style="display:inline-flex; align-items:center; gap:0.45rem; font-size:0.82rem; font-weight:600;
+                                color:var(--primary); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2);
+                                padding:0.25rem 0.8rem; border-radius:var(--radius-full); margin-bottom:0.6rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 20V10M12 20V4M6 20v-6"/>
+                        </svg>
+                        Performance Analytics &amp; Visual Intelligence
+                    </div>
+                    <h1 class="section-heading" style="font-size:1.9rem;">Progress Tracking &amp; Trends</h1>
+                    <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.25rem;">
+                        Visualize your weight, BMI, caloric intake, protein trends, and workout session frequency over time.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Logging Controls -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                
+                <!-- Log Workout Card -->
+                <div class="glass-card" style="padding: 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6"/></svg>
+                        Log Completed Workout
+                    </h3>
+                    <form method="POST" action="{{ url_for('auth.log_workout') }}">
+                        <div class="mb-2">
+                            <input type="text" name="workout_title" class="form-control" placeholder="Workout Title (e.g. Leg Day)" required style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" class="mb-2">
+                            <input type="number" name="completed_exercises" class="form-control" placeholder="Exercises / Reps" min="1" required style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                            <input type="number" name="duration_mins" class="form-control" placeholder="Duration (mins)" min="1" required style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; padding: 0.5rem;">+ Save Workout Log</button>
+                    </form>
+                </div>
+
+                <!-- Log Nutrition Card -->
+                <div class="glass-card" style="padding: 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        Log Daily Nutrition
+                    </h3>
+                    <form method="POST" action="{{ url_for('auth.log_nutrition') }}">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" class="mb-2">
+                            <input type="number" name="calories_consumed" class="form-control" placeholder="Calories (kcal)" required style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                            <input type="number" name="protein_grams" step="0.1" class="form-control" placeholder="Protein (g)" required style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" class="mb-2">
+                            <input type="number" name="carbs_grams" step="0.1" class="form-control" placeholder="Carbs (g)" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                            <input type="number" name="fats_grams" step="0.1" class="form-control" placeholder="Fats (g)" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem; border-radius: var(--radius-md); width: 100%; font-size: 0.85rem;">
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; padding: 0.5rem; border-color: rgba(6,182,212,0.4); color: #06b6d4;">+ Save Nutrition Log</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- ── VISUAL ANALYTICS CHARTS SECTION ────────────────────────── -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                
+                <!-- Chart 1: Weight & BMI Trends -->
+                <div class="glass-card" style="padding: 1.25rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Weight &amp; BMI Trend</span>
+                        <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">Biometric Progression</span>
+                    </h3>
+                    <div style="position: relative; height: 240px;">
+                        <canvas id="bodyTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Calories & Protein Trends -->
+                <div class="glass-card" style="padding: 1.25rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Calories &amp; Protein Trend</span>
+                        <span style="font-size: 0.75rem; color: #06b6d4; font-weight: 600;">Nutritional Target Tracking</span>
+                    </h3>
+                    <div style="position: relative; height: 240px;">
+                        <canvas id="nutritionTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Workout Frequency & Duration -->
+                <div class="glass-card" style="padding: 1.25rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Workout Frequency &amp; Duration</span>
+                        <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">Session Consistency</span>
+                    </h3>
+                    <div style="position: relative; height: 240px;">
+                        <canvas id="workoutFreqChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Historical Tables Section -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <!-- 1. Weight & BMI History Table -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 3v18M3 12h18M5 7l14 10M5 17L19 7"/></svg>
+                        Weight &amp; BMI History Records
+                    </h2>
+                    
+                    {% if bmi_history %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                        <th style="padding: 0.75rem;">Date</th>
+                                        <th style="padding: 0.75rem;">Weight</th>
+                                        <th style="padding: 0.75rem;">Height</th>
+                                        <th style="padding: 0.75rem;">BMI</th>
+                                        <th style="padding: 0.75rem;">Category</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rec in bmi_history %}
+                                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ rec.recorded_at.strftime('%Y-%m-%d %H:%M') if rec.recorded_at else 'N/A' }}</td>
+                                            <td style="padding: 0.75rem; font-weight: 700; color: var(--text-main);">{{ rec.weight_kg }} kg</td>
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ rec.height_cm }} cm</td>
+                                            <td style="padding: 0.75rem; font-weight: 700; color: var(--primary);">{{ rec.bmi_value }}</td>
+                                            <td style="padding: 0.75rem;">
+                                                <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--primary);">
+                                                    {{ rec.bmi_category }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">No weight or BMI entries recorded yet. Use the <a href="{{ url_for('auth.bmi') }}" style="color: var(--primary);">BMI Calculator</a> to log your first record.</p>
+                    {% endif %}
+                </div>
+
+                <!-- 2. Workout Session History Table -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6"/></svg>
+                        Workout Session History Records
+                    </h2>
+
+                    {% if workout_history %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                        <th style="padding: 0.75rem;">Date</th>
+                                        <th style="padding: 0.75rem;">Routine Title</th>
+                                        <th style="padding: 0.75rem;">Exercises / Reps</th>
+                                        <th style="padding: 0.75rem;">Duration</th>
+                                        <th style="padding: 0.75rem;">Form Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in workout_history %}
+                                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ log.logged_at.strftime('%Y-%m-%d %H:%M') if log.logged_at else 'N/A' }}</td>
+                                            <td style="padding: 0.75rem; font-weight: 700; color: var(--text-main);">{{ log.workout_title }}</td>
+                                            <td style="padding: 0.75rem; color: var(--primary); font-weight: 600;">{{ log.completed_exercises }}</td>
+                                            <td style="padding: 0.75rem; color: #06b6d4; font-weight: 600;">{{ log.duration_mins }} mins</td>
+                                            <td style="padding: 0.75rem;">
+                                                {% if log.form_score is not none %}
+                                                    <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                                                        {{ log.form_score }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span style="font-size: 0.75rem; color: var(--text-muted);">Manual Log</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">No workout sessions logged yet. Log a completed session above or generate a routine in the <a href="{{ url_for('auth.workout') }}" style="color: var(--primary);">Workout Planner</a>.</p>
+                    {% endif %}
+                </div>
+
+                <!-- 3. Daily Calorie & Protein History Table -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        Daily Calorie &amp; Protein History Records
+                    </h2>
+
+                    {% if nutrition_history %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                        <th style="padding: 0.75rem;">Date</th>
+                                        <th style="padding: 0.75rem;">Calories</th>
+                                        <th style="padding: 0.75rem;">Protein</th>
+                                        <th style="padding: 0.75rem;">Carbs</th>
+                                        <th style="padding: 0.75rem;">Fats</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in nutrition_history %}
+                                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ log.logged_at.strftime('%Y-%m-%d %H:%M') if log.logged_at else 'N/A' }}</td>
+                                            <td style="padding: 0.75rem; font-weight: 700; color: #06b6d4;">{{ log.calories_consumed }} kcal</td>
+                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--primary);">{{ log.protein_grams }} g</td>
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ log.carbs_grams }} g</td>
+                                            <td style="padding: 0.75rem; color: var(--text-muted);">{{ log.fats_grams }} g</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">No daily nutrition entries logged yet. Calculate your targets in the <a href="{{ url_for('auth.diet') }}" style="color: var(--primary);">Diet Planner</a> and log your intake above.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<!-- Chart.js Script Initialization -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const chartData = {{ chart_data | tojson | safe }};
+
+    const darkChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+            }
+        },
+        scales: {
+            x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#94a3b8', font: { size: 10 } }
+            }
+        }
+    };
+
+    // 1. Weight & BMI Trend Chart
+    const bodyCtx = document.getElementById('bodyTrendChart');
+    if (bodyCtx) {
+        new Chart(bodyCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.weight_labels.length ? chartData.weight_labels : ['No Data'],
+                datasets: [
+                    {
+                        label: 'Weight (kg)',
+                        data: chartData.weight_values,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'BMI Index',
+                        data: chartData.bmi_values,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.15)',
+                        fill: false,
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                ...darkChartOptions,
+                scales: {
+                    ...darkChartOptions.scales,
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#10b981' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#06b6d4' }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Calories & Protein Trend Chart
+    const nutritionCtx = document.getElementById('nutritionTrendChart');
+    if (nutritionCtx) {
+        new Chart(nutritionCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.nutrition_labels.length ? chartData.nutrition_labels : ['No Data'],
+                datasets: [
+                    {
+                        label: 'Calories (kcal)',
+                        data: chartData.calories_values,
+                        backgroundColor: 'rgba(6, 182, 212, 0.6)',
+                        borderColor: '#06b6d4',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Protein (g)',
+                        data: chartData.protein_values,
+                        type: 'line',
+                        borderColor: '#10b981',
+                        backgroundColor: '#10b981',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                ...darkChartOptions,
+                scales: {
+                    ...darkChartOptions.scales,
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: { color: '#06b6d4' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#10b981' }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Workout Frequency Chart
+    const workoutCtx = document.getElementById('workoutFreqChart');
+    if (workoutCtx) {
+        new Chart(workoutCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.workout_labels.length ? chartData.workout_labels : ['No Data'],
+                datasets: [
+                    {
+                        label: 'Exercises / Reps Completed',
+                        data: chartData.workout_counts,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Duration (mins)',
+                        data: chartData.workout_durations,
+                        backgroundColor: 'rgba(16, 185, 129, 0.4)',
+                        borderColor: '#10b981',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: darkChartOptions
+        });
+    }
+});
+</script>
+{% endblock %}

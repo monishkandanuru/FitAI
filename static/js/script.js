@@ -283,11 +283,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Today's Goals Checklist Interactive Handler
+     * Today's Goals Checklist Interactive Handler with LocalStorage Persistence
      */
     const goalsChecklist = document.getElementById('goals-checklist');
     const goalsCompletedText = document.getElementById('goals-completed-text');
     const goalsPercentage = document.getElementById('goals-percentage');
+    const STORAGE_KEY_GOALS = 'fitai_goals_state';
+
+    function loadSavedGoalsState() {
+        if (!goalsChecklist) return;
+        try {
+            const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY_GOALS));
+            if (savedState && typeof savedState === 'object') {
+                const goalItems = goalsChecklist.querySelectorAll('.goal-item');
+                goalItems.forEach((item, index) => {
+                    const goalId = item.getAttribute('data-goal-id') || `goal_${index}`;
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    if (checkbox && goalId in savedState) {
+                        checkbox.checked = Boolean(savedState[goalId]);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Could not load saved goals state from localStorage:', e);
+        }
+    }
+
+    function saveGoalsState() {
+        if (!goalsChecklist) return;
+        try {
+            const state = {};
+            const goalItems = goalsChecklist.querySelectorAll('.goal-item');
+            goalItems.forEach((item, index) => {
+                const goalId = item.getAttribute('data-goal-id') || `goal_${index}`;
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    state[goalId] = checkbox.checked;
+                }
+            });
+            localStorage.setItem(STORAGE_KEY_GOALS, JSON.stringify(state));
+        } catch (e) {
+            console.warn('Could not save goals state to localStorage:', e);
+        }
+    }
 
     function updateGoalsProgress() {
         if (!goalsChecklist) return;
@@ -317,8 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (goalsChecklist) {
-        goalsChecklist.addEventListener('change', updateGoalsProgress);
+        loadSavedGoalsState();
         updateGoalsProgress();
+
+        goalsChecklist.addEventListener('change', () => {
+            saveGoalsState();
+            updateGoalsProgress();
+        });
     }
 
     // Run health check if health pill is present

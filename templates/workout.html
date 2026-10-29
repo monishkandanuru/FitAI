@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}Workout Planner – FitAI Coach{% endblock %}
+
+{% block content %}
+<div class="dash-layout-container">
+
+    <!-- ── Left Sidebar ────────────────────────────────────────────────── -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+        <div class="sidebar-user-info">
+            <div class="user-avatar-md">
+                <span>{{ g.user.full_name[:2].upper() if g.user and g.user.full_name else 'AI' }}</span>
+            </div>
+            <div class="sidebar-user-details">
+                <span class="sidebar-user-name">{{ g.user.full_name if g.user else 'Guest User' }}</span>
+                <span class="sidebar-user-email">{{ g.user.email if g.user else '' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('auth.dashboard') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('auth.bmi') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v18M3 12h18M5 7l14 10M5 17L19 7" />
+                </svg>
+                <span>BMI Calculator</span>
+            </a>
+            <a href="{{ url_for('auth.workout') }}" class="sidebar-item active">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6" />
+                </svg>
+                <span>Workout Planner</span>
+            </a>
+            <a href="{{ url_for('auth.diet') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                <span>Diet Planner</span>
+            </a>
+            <a href="{{ url_for('auth.progress') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg>
+                <span>Progress</span>
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('auth.settings') }}" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-item sidebar-logout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ────────────────────────────────────────────────── -->
+    <main class="dash-main-content">
+        <div class="dash-container">
+
+            <!-- Page Header -->
+            <div class="section-title-row mb-3" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="display:inline-flex; align-items:center; gap:0.45rem; font-size:0.82rem; font-weight:600;
+                                color:var(--primary); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2);
+                                padding:0.25rem 0.8rem; border-radius:var(--radius-full); margin-bottom:0.6rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M5 9v6M19 9v6"/>
+                        </svg>
+                        AI Routine Architect
+                    </div>
+                    <h1 class="section-heading" style="font-size:1.9rem;">Workout Generator</h1>
+                    <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.25rem;">
+                        Generate hyper-personalized training routines from our database tailored to your goals and experience level.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('auth.workout_camera') }}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    <span>Launch Workout Camera</span>
+                </a>
+            </div>
+
+
+            <!-- Page Grid: Generator Form & Generated Routine View -->
+            <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start;">
+                
+                <!-- Generator Configuration Form -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Workout Parameters
+                    </h2>
+
+                    <form method="POST" action="{{ url_for('auth.workout') }}" id="workout-generator-form">
+                        
+                        <!-- Primary Goal -->
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="goal" style="font-weight: 600; font-size: 0.88rem;">Fitness Goal</label>
+                            <select id="goal" name="goal" class="form-control" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); width: 100%;">
+                                <option value="Muscle Gain" {% if selected_goal == 'Muscle Gain' %}selected{% endif %}>Muscle Gain (Hypertrophy)</option>
+                                <option value="Weight Loss" {% if selected_goal == 'Weight Loss' %}selected{% endif %}>Weight Loss (Fat Loss)</option>
+                                <option value="Endurance" {% if selected_goal == 'Endurance' %}selected{% endif %}>Stamina & Endurance</option>
+                                <option value="General Fitness" {% if selected_goal == 'General Fitness' %}selected{% endif %}>General Fitness</option>
+                            </select>
+                        </div>
+
+                        <!-- Experience Level -->
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="fitness_level" style="font-weight: 600; font-size: 0.88rem;">Experience Level</label>
+                            <select id="fitness_level" name="fitness_level" class="form-control" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); width: 100%;">
+                                <option value="Beginner" {% if selected_level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                <option value="Intermediate" {% if selected_level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                <option value="Advanced" {% if selected_level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                            </select>
+                        </div>
+
+                        <!-- Target Focus -->
+                        <div class="form-group mb-4">
+                            <label class="form-label" for="focus" style="font-weight: 600; font-size: 0.88rem;">Target Muscle Group</label>
+                            <select id="focus" name="focus" class="form-control" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); width: 100%;">
+                                <option value="Full Body" {% if selected_focus == 'Full Body' %}selected{% endif %}>Full Body</option>
+                                <option value="Chest" {% if selected_focus == 'Chest' %}selected{% endif %}>Chest</option>
+                                <option value="Legs" {% if selected_focus == 'Legs' %}selected{% endif %}>Legs</option>
+                                <option value="Back" {% if selected_focus == 'Back' %}selected{% endif %}>Back</option>
+                                <option value="Core" {% if selected_focus == 'Core' %}selected{% endif %}>Core</option>
+                                <option value="Arms" {% if selected_focus == 'Arms' %}selected{% endif %}>Arms</option>
+                                <option value="Shoulders" {% if selected_focus == 'Shoulders' %}selected{% endif %}>Shoulders</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z"/></svg>
+                            <span>Generate Routine</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Generated Workout Plan Results -->
+                <div>
+                    {% if workout_plan %}
+                        <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                            
+                            <!-- Header Summary -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                                <div>
+                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.4rem;">
+                                        <span class="welcome-badge" style="font-size: 0.75rem;">{{ workout_plan.fitness_level }}</span>
+                                        <span class="welcome-badge" style="font-size: 0.75rem; background: rgba(6, 182, 212, 0.15); color: #06b6d4; border-color: rgba(6, 182, 212, 0.3);">{{ workout_plan.goal }}</span>
+                                    </div>
+                                    <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+                                        {{ workout_plan.title }}
+                                    </h2>
+                                </div>
+
+                                <!-- Key Stats Badges -->
+                                <div style="display: flex; gap: 1rem;">
+                                    <div style="background: rgba(15, 23, 42, 0.6); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+                                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Exercises</span>
+                                        <strong style="font-size: 1.1rem; color: var(--primary);">{{ workout_plan.total_exercises }}</strong>
+                                    </div>
+                                    <div style="background: rgba(15, 23, 42, 0.6); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+                                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Duration</span>
+                                        <strong style="font-size: 1.1rem; color: #06b6d4;">~{{ workout_plan.estimated_duration_mins }}m</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Exercises List -->
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                {% for exercise in workout_plan.exercises %}
+                                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; transition: transform 0.2s ease;">
+                                        
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                            <div>
+                                                <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+                                                    {{ loop.index }}. {{ exercise.name }}
+                                                </h3>
+                                                
+                                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                    <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--primary);">
+                                                        Muscle: {{ exercise.muscle_group }}
+                                                    </span>
+                                                    <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(148, 163, 184, 0.15); color: #cbd5e1;">
+                                                        Equipment: {{ exercise.equipment }}
+                                                    </span>
+                                                    <span style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                                                        Difficulty: {{ exercise.difficulty }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Prescription Sets & Reps -->
+                                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 0.4rem 0.85rem; border-radius: var(--radius-md); text-align: right;">
+                                                <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+                                                    {{ exercise.sets }} Sets × {{ exercise.reps }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Instructions -->
+                                        <div style="background: rgba(0, 0, 0, 0.2); padding: 0.75rem 1rem; border-radius: var(--radius-md); border-left: 3px solid var(--primary);">
+                                            <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">
+                                                Execution Instructions:
+                                            </span>
+                                            <p style="font-size: 0.88rem; color: var(--text-main); line-height: 1.5; margin: 0;">
+                                                {{ exercise.instructions }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+</div>
+{% endblock %}
