@@ -1,9 +1,9 @@
 """
-FitAI Automated Verification & Integration Test Suite
+FitAI Automated Verification & Integration Test Suite (Stage 5)
 Tests all core routes, authentication flows, BMI calculation & server-side recomputation,
 workout generation, live camera session logging, Stage 3 body assessment,
 Stage 4 personalized recommendations, nutrition planner, progress analytics,
-account settings updates, data isolation, and Vercel serverless readiness.
+account settings updates, cross-account data isolation, and security headers.
 """
 
 import unittest
@@ -33,10 +33,12 @@ class FitAITestCase(unittest.TestCase):
             'confirm_password': password
         }, follow_redirects=True)
 
-    def test_01_public_and_health_endpoints(self):
+    def test_01_public_health_and_security_headers(self):
         resp_home = self.client.get('/')
         self.assertEqual(resp_home.status_code, 200)
         self.assertIn(b'FitAI', resp_home.data)
+        self.assertEqual(resp_home.headers.get('X-Content-Type-Options'), 'nosniff')
+        self.assertEqual(resp_home.headers.get('X-Frame-Options'), 'SAMEORIGIN')
 
         resp_health = self.client.get('/health')
         self.assertEqual(resp_health.status_code, 200)
@@ -196,6 +198,22 @@ class FitAITestCase(unittest.TestCase):
         updated_user = User.query.filter_by(email='monish@example.com').first()
         self.assertEqual(updated_user.full_name, 'Monish K.')
         self.assertTrue(updated_user.check_password('NewSecurePass456!'))
+
+    def test_07_cross_account_data_isolation(self):
+        # User 1 logs a workout and BMI record
+        self.register_and_login(full_name="User One", email="user1@example.com")
+        self.client.post('/auth/progress/log_workout', data={
+            'workout_title': 'UserOnePrivateWorkout',
+            'completed_exercises': '5',
+            'duration_mins': '40'
+        }, follow_redirects=True)
+        self.client.get('/auth/logout', follow_redirects=True)
+
+        # User 2 registers and views progress — must not see User 1's records
+        self.register_and_login(full_name="User Two", email="user2@example.com")
+        prog_resp = self.client.get('/auth/progress')
+        self.assertEqual(prog_resp.status_code, 200)
+        self.assertNotIn(b'UserOnePrivateWorkout', prog_resp.data)
 
 
 if __name__ == '__main__':

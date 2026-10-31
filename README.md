@@ -1,8 +1,11 @@
 # FitAI — AI Powered Fitness & Nutrition Coach
 
+**Live Deployment:** [https://fit-ai-olive-delta.vercel.app](https://fit-ai-olive-delta.vercel.app)  
+**Repository:** [https://github.com/monishkandanuru/FitAI](https://github.com/monishkandanuru/FitAI)
+
 FitAI is a modular Python & Flask web application featuring a dark glassmorphism UI, real-time MediaPipe Pose computer vision exercise tracking, browser speech-synthesis voice coaching, pose-based body proportion & posture assessment, rule-based workout and macro planning, Chart.js progress analytics, and personalized coaching recommendations.
 
-## Implemented Modules
+## Implemented Modules (Stages 1–5 Complete)
 
 1. **Authentication & Account Security (`/auth/register`, `/auth/login`, `/auth/settings`)**
    - Password hashing via Werkzeug, protected session routes (`@login_required`), and account settings with current-password verification.
@@ -43,5 +46,6 @@ Run automated verification tests:
 ## Vercel Deployment
 
 The repository includes `vercel.json`, `build.py`, and serverless-safe configuration in `config.py` and `app.py`:
+- **Live Production URL**: [https://fit-ai-olive-delta.vercel.app](https://fit-ai-olive-delta.vercel.app)
+- **Live Health Endpoint**: [https://fit-ai-olive-delta.vercel.app/health](https://fit-ai-olive-delta.vercel.app/health)
 - **Database**: Set `DATABASE_URL` (or `POSTGRES_URL`) in Vercel Environment Variables to connect a persistent PostgreSQL database (Neon, Supabase, or Vercel Postgres), and set `SECRET_KEY` to a strong random string. If no `DATABASE_URL` is provided, the app automatically falls back to `/tmp/fitai.db` so serverless invocations never fail on read-only filesystems.
-- **Health Check**: Verify `/health` after deployment for `{"status": "healthy"}`.
